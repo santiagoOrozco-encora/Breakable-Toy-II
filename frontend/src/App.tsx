@@ -3,6 +3,7 @@ import './index.css'
 import Input from './components/atoms/Input'
 import { useForm } from 'react-hook-form'
 import { FlightSearch } from './api/types'
+import { getFlightOffers } from './api/service'
 
 function App() {
 
@@ -13,11 +14,19 @@ function App() {
     { value: 'MXN', label: 'MXN' },
   ]
 
+
+  const onSubmit = handleSubmit(async (data) => {
+    console.log(data)
+    const flights = await getFlightOffers(data)
+    console.log(flights)
+  })
+
+
   return (
     <>
       <div className="flex flex-col items-center justify-center h-screen gap-5">
         <h1 className='text-2xl font-bold text-red-500'>Flight search</h1>
-        <form className="flex flex-col gap-5" onSubmit={handleSubmit((data) => console.log(data))}>
+        <form className="flex flex-col gap-5" onSubmit={onSubmit}>
           <Input label="Departure airport" id="from" type="text" placeholder="LAX" {...register('originLocationCode', { required: true })} />
           {errors.originLocationCode && <p className="text-red-500">This field is required</p>}
           <Input label="Arrival airport" id="to" type="text" placeholder="MAD" {...register('destinationLocationCode', { required: true })} />
