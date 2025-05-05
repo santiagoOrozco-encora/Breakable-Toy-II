@@ -1,35 +1,82 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import Button from "./components/atoms/Button";
+import "./index.css";
+import Input from "./components/atoms/Input";
+import { useForm } from "react-hook-form";
+import { FlightSearch } from "./api/types";
+import { getFlightOffers } from "./api/service";
+import { Link } from "react-router-dom";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FlightSearch>();
+  const CURRENCY_OPTIONS = [
+    { value: "USD", label: "USD" },
+    { value: "EUR", label: "EUR" },
+    { value: "MXN", label: "MXN" },
+  ];
+
+  const onSubmit = handleSubmit(async (data) => {
+    console.log(data);
+    const flights = await getFlightOffers(data);
+    console.log(flights);
+  });
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="flex flex-col items-center justify-center h-screen gap-5">
+      <h1 className="text-2xl font-bold text-red-500">Flight search</h1>
+      <form className="flex flex-col gap-5" onSubmit={onSubmit}>
+        <Input
+          label="Departure airport"
+          id="from"
+          type="text"
+          placeholder="LAX"
+          {...register("originLocationCode", { required: true })}
+        />
+        {errors.originLocationCode && (
+          <p className="text-red-500">This field is required</p>
+        )}
+        <Input
+          label="Arrival airport"
+          id="to"
+          type="text"
+          placeholder="MAD"
+          {...register("destinationLocationCode", { required: true })}
+        />
+        {errors.destinationLocationCode && (
+          <p className="text-red-500">This field is required</p>
+        )}
+        <Input
+          label="Departure date"
+          id="date"
+          type="date"
+          {...register("departureDate", { required: true })}
+        />
+        {errors.departureDate && (
+          <p className="text-red-500">This field is required</p>
+        )}
+        <Input
+          label="Return date"
+          id="returnDate"
+          type="date"
+          {...register("returnDate")}
+        />
+        <Input
+          label="Passengers"
+          id="passengers"
+          type="number"
+          placeholder="Number of passengers"
+          {...register("adults", { required: true })}
+        />
+        <Button type="submit" variant="primary">
+          Search
+        </Button>
+      </form>
+      <a href="/FlightResults">Results</a>
+    </div>
+  );
 }
 
-export default App
+export default App;
