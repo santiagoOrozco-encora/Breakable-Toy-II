@@ -1,44 +1,67 @@
 package com.FlightSearch.BackEnd.service;
 
 
+import com.FlightSearch.BackEnd.data.model.AirportData;
+import com.FlightSearch.BackEnd.data.model.AirportResponse;
 import com.FlightSearch.BackEnd.presentation.dto.AirportListDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class FlightService {
 
-    private final WebClient amadeousClient;
-    private String token = "kEcxOymyTnsZd5T32qjS6mv0CJhi";
+//  @Qualifier("AmadeousFlightApiServiceImpl")
+    private final FlightApiService flightApiService;
+
     @Autowired
-    public FlightService(WebClient.Builder webClientBuilder) {
-        this.amadeousClient = webClientBuilder.baseUrl("https://test.api.amadeus.com").defaultHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s",token)).build();
-    }
-
-
-    public Mono<Object> searchAirport(String keyword) {
-        return amadeousClient.get().uri(uriBuilder -> uriBuilder.path("v1/reference-data/locations").queryParam("subType","AIRPORT").queryParam("keyword",keyword).queryParam("view","LIGHT").build()).accept(MediaType.APPLICATION_JSON).retrieve().bodyToMono(Object.class).map(this::processAirports);
+    public FlightService(FlightApiService flightApiService) {
+        this.flightApiService = flightApiService;
 
     }
 
-    private Object processAirports(Object airportsInfo){
-        System.out.println(airportsInfo);
-        return airportsInfo;
+    //Search airport matching keyword
+    public Mono<List<AirportListDTO>> searchAirport(String keyword) {
+        return this.flightApiService.airportSearch(keyword).map(airportResponse -> {
+            if(airportResponse != null && airportResponse.getData() != null){
+                return airportResponse.getData().stream()
+                        .map(this::convertToAirportListDTO)
+                        .collect(Collectors.toList());
+            }
+            return List.of();
+        });
+
     }
 
+    //Process the data to a list of DTO
+//    private List<AirportListDTO> processAirports(AirportResponse airportResponse){
+//        if(airportResponse != null && airportResponse.getData() != null){
+//            return airportResponse.getData().stream().map(this::convertToAirportListDTO).collect(Collectors.toList());
+//        }
+//        return List.of();
+//    }
+
+
+    //Conversion from Data to DTO
+    private AirportListDTO convertToAirportListDTO(AirportData airportData){
+        AirportListDTO dto = new AirportListDTO();
+//        BeanUtils.copyProperties(airportData,dto);
+        dto.setIATACode(airportData.getIataCode());
+        dto.setAirportName(airportData.getName());
+        dto.setAddress(airportData.getAddress());
+        return dto;
+    }
+
+    //Search flight
     public int searchFlight(FlightSearchDTO searchDetails){
+//        return amadeousClient.get().uri(uriBuilder -> uriBuilder.path("v2/shopping/flight-offers").
+//                queryParam("originLocationCode",searchDetails.getOrigin()).
+//                queryParam()))))
         return 0;
     }
 }

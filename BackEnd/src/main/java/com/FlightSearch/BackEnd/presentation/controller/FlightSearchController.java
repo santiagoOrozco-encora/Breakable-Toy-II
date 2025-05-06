@@ -26,7 +26,7 @@ public class FlightSearchController {
     }
 
     @GetMapping("/search-airport")
-    public ResponseEntity<Mono<Object>> getAirports(@RequestParam(required = true,defaultValue = "") String keyword) {
+    public ResponseEntity<Mono<List<AirportListDTO>>> getAirports(@RequestParam(required = true,defaultValue = "") String keyword) {
         return ResponseEntity.ok(this.flightService.searchAirport(keyword));
     }
 
