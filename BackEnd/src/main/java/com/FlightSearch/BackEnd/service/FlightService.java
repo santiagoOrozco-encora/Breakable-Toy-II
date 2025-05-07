@@ -1,6 +1,7 @@
 package com.FlightSearch.BackEnd.service;
 
 
+import com.FlightSearch.BackEnd.data.model.Adress;
 import com.FlightSearch.BackEnd.data.model.AirportData;
 import com.FlightSearch.BackEnd.data.model.AirportResponse;
 import com.FlightSearch.BackEnd.presentation.dto.AirportListDTO;
@@ -50,10 +51,10 @@ public class FlightService {
     //Conversion from Data to DTO
     private AirportListDTO convertToAirportListDTO(AirportData airportData){
         AirportListDTO dto = new AirportListDTO();
+        Adress airportAddress = airportData.getAddress();
 //        BeanUtils.copyProperties(airportData,dto);
-        dto.setIATACode(airportData.getIataCode());
-        dto.setAirportName(airportData.getName());
-        dto.setAddress(airportData.getAddress());
+        dto.setValue(airportData.getIataCode());
+        dto.setLabel(String.format("%s (%s,%s)",airportData.getName(),airportAddress.getCountryName(),airportAddress.getCityName()));
         return dto;
     }
 
