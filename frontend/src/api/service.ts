@@ -1,11 +1,5 @@
-import { FlightSearch } from "./types";
-
-export const AMADEUS_API_KEY = import.meta.env.VITE_API_KEY;
-export const AMADEUS_API_SECRET = import.meta.env.VITE_API_SECRET;
+import { FlightSearch, Airport, SelectOption } from "./types";
 export const flightSearchUrl = import.meta.env.VITE_FLIGHT_SEARCH;
-console.log(flightSearchUrl);
-
-const TOKEN = "vyOY9rYdTZfZovWdHmGalSn18rjZ";
 
 export const getFlightOffers = async (params: FlightSearch) => {
   const url = new URL(flightSearchUrl);
@@ -35,12 +29,10 @@ export const getFlightOffers = async (params: FlightSearch) => {
 };
 
 export const getAirports = async (params: string) => {
-  const url = new URL(flightSearchUrl + "/search-aiport");
+  const url = new URL(flightSearchUrl + "/search-airport");
   url.searchParams.set("keyword", params);
-  console.log(url);
   const response = await fetch(url);
-  const data = await response.json();
+  const data: SelectOption[] = await response.json();
   console.log(data);
-  // console.log(data)
-  // return data
+  return data;
 };
