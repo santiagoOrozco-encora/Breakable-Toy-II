@@ -1,5 +1,6 @@
-package com.FlightSearch.BackEnd.data.model;
+package com.FlightSearch.BackEnd.data.model.apiRespose;
 
+import com.FlightSearch.BackEnd.data.model.AirportData;
 import lombok.Data;
 
 import java.util.List;

@@ -1,0 +1,16 @@
+package com.FlightSearch.BackEnd.data.model.flightOfferModels;
+
+import com.FlightSearch.BackEnd.data.model.flightOfferModels.itinerary.Itinerary;
+import com.FlightSearch.BackEnd.data.model.flightOfferModels.travelerPricing.TravelerPricings;
+import lombok.*;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class FlightOffer {
+    private List<Itinerary> itineraries;
+    private Price price;
+    private List<TravelerPricings> travelerPricings;
+}

@@ -1,13 +1,11 @@
 package com.FlightSearch.BackEnd.data.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
+@NoArgsConstructor
 public class AirportData {
     @NonNull
     private String name;

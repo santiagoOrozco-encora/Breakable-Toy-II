@@ -1,6 +1,8 @@
-package com.FlightSearch.BackEnd.service;
+package com.FlightSearch.BackEnd.service.ApiClient;
 
-import com.FlightSearch.BackEnd.data.model.AirportResponse;
+import com.FlightSearch.BackEnd.data.model.apiRespose.AirportResponse;
+import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
+import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -10,9 +12,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
@@ -74,9 +80,43 @@ public class AmadeousFlightApiServiceImpl implements FlightApiService{
         return performWithRetry(requestFunction);
     }
 
+    @Override
+    public Mono<FlightResponse> flightOfferSearch(FlightSearchDTO details){
+        Supplier<Mono<FlightResponse>> requestFunction = ()-> {
+            UriComponentsBuilder uri = UriComponentsBuilder.fromPath("v2/shopping/flight-offers")
+                    .queryParam("originLocationCode", details.getOrigin())
+                    .queryParam("destinationLocationCode", details.getDestination())
+                    .queryParam("departureDate", details.getDepartureDate())
+                    .queryParam("adults", details.getPassengers())
+                    .queryParam("nonStop", details.getNonStop().toString())
+                    .queryParam("currencyCode", details.getCurrency())
+                    .queryParam("max","2");
+
+            if (details.getReturnDate() != null && !details.getReturnDate().isEmpty()) {
+                uri.queryParam("returnDate",details.getReturnDate());
+            }
+
+            return amadeousClient.get()
+                    .uri(uri.toUriString())
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.authToken)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> {
+                        if (clientResponse.statusCode() == HttpStatus.UNAUTHORIZED) {
+                            System.out.println("Recibido error 401, intentando reautenticar.");
+                            return Mono.error(new UnauthorizedException("Token expirado o inválido"));
+                        } else {
+                            return Mono.error(new RuntimeException("Error en la petición de búsqueda de vuelos: " + clientResponse.statusCode()));
+                        }
+                    })
+                    .bodyToMono(FlightResponse.class);
+        };
+
+        return  performWithRetry(requestFunction);
+    }
+
     private <T> Mono<T> performWithRetry(Supplier<Mono<T>> requestFunction){
         return requestFunction.get().onErrorResume(UnauthorizedException.class, e ->
-                // Si hay un error de autorización, obtén un nuevo token y luego realiza la petición de nuevo
                 getAuth().flatMap(newToken -> requestFunction.get()));
     }
 

@@ -3,8 +3,10 @@ package com.FlightSearch.BackEnd.service;
 
 import com.FlightSearch.BackEnd.data.model.Adress;
 import com.FlightSearch.BackEnd.data.model.AirportData;
+import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
 import com.FlightSearch.BackEnd.presentation.dto.AirportListDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
+import com.FlightSearch.BackEnd.service.ApiClient.FlightApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -37,15 +39,6 @@ public class FlightService {
 
     }
 
-    //Process the data to a list of DTO
-//    private List<AirportListDTO> processAirports(AirportResponse airportResponse){
-//        if(airportResponse != null && airportResponse.getData() != null){
-//            return airportResponse.getData().stream().map(this::convertToAirportListDTO).collect(Collectors.toList());
-//        }
-//        return List.of();
-//    }
-
-
     //Conversion from Data to DTO
     private AirportListDTO convertToAirportListDTO(AirportData airportData){
         AirportListDTO dto = new AirportListDTO();
@@ -57,10 +50,7 @@ public class FlightService {
     }
 
     //Search flight
-    public int searchFlight(FlightSearchDTO searchDetails){
-//        return amadeousClient.get().uri(uriBuilder -> uriBuilder.path("v2/shopping/flight-offers").
-//                queryParam("originLocationCode",searchDetails.getOrigin()).
-//                queryParam()))))
-        return 0;
+    public Mono<FlightResponse> searchFlight(FlightSearchDTO searchDetails){
+        return this.flightApiService.flightOfferSearch(searchDetails);
     }
 }
