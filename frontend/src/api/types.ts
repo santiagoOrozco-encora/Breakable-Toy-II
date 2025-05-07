@@ -30,10 +30,19 @@ export type FlightSearch = {
 };
 
 export type Airport = {
-  name: string;
-  code: string;
-  country: string;
-  city: string;
+  airportName: string;
+  iatacode: string;
+  address: Address;
+};
+
+export type Address = {
+  cityName: string;
+  countryName: string;
+};
+
+export type SelectOption = {
+  value: string;
+  label: string;
 };
 
 //  a. Initial departure day/time

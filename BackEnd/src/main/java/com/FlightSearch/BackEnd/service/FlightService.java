@@ -5,7 +5,6 @@ import com.FlightSearch.BackEnd.data.model.AirportData;
 import com.FlightSearch.BackEnd.data.model.AirportResponse;
 import com.FlightSearch.BackEnd.presentation.dto.AirportListDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;

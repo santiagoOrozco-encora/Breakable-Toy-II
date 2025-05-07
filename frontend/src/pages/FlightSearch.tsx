@@ -1,15 +1,10 @@
 import Input from "../components/atoms/Input";
 import { useForm, Controller, Control } from "react-hook-form";
-import { Airport, FlightSearch } from "../api/types";
+import { Airport, FlightSearch, SelectOption } from "../api/types";
 import { getFlightOffers, getAirports } from "../api/service";
 import Button from "../components/atoms/Button";
 import AsyncSelect from "react-select/async";
 import { SingleValue } from "react-select";
-
-type SelectOption = {
-  value: string;
-  label: string;
-};
 
 const CURRENCY_OPTIONS: SelectOption[] = [
   { value: "USD", label: "USD" },
@@ -26,7 +21,7 @@ const FlightSearchPage = () => {
   } = useForm<FlightSearch>();
 
   const loadAirportOptions = (inputValue: string): Promise<SelectOption[]> => {
-    return new Promise((resolve) => {
+    return new Promise<SelectOption[]>((resolve) => {
       setTimeout(() => {
         // For now, we're using CURRENCY_OPTIONS as a fallback
         // When you're ready to use real airport data, replace this with:
@@ -39,8 +34,8 @@ const FlightSearchPage = () => {
         //   label: `${airport.name} (${airport.code})`
         // }));
         // resolve(filtered);
-
-        resolve(CURRENCY_OPTIONS);
+        console.log(airports);
+        resolve(airports);
       }, 1000);
     });
   };
@@ -70,9 +65,8 @@ const FlightSearchPage = () => {
             <AsyncSelect<SelectOption>
               ref={ref}
               cacheOptions
-              defaultOptions={CURRENCY_OPTIONS}
+              defaultOptions={[]}
               loadOptions={loadAirportOptions}
-              value={CURRENCY_OPTIONS.find((c) => c.value === value) || null}
               onChange={(selected: SingleValue<SelectOption>) =>
                 onChange(selected?.value || "")
               }
