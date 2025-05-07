@@ -6,7 +6,6 @@ import lombok.Data;
 
 @Data
 public class AirportListDTO {
-    private String AirportName;
-    private String IATACode;
-    private Adress address;
+    private String value;
+    private String label;
 }
