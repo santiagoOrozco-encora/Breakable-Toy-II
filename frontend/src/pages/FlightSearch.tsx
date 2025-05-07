@@ -5,6 +5,9 @@ import { getFlightOffers, getAirports } from "../api/service";
 import Button from "../components/atoms/Button";
 import AsyncSelect from "react-select/async";
 import { SingleValue } from "react-select";
+import { useCallback, useMemo, useEffect } from "react";
+import debounce from "lodash/debounce";
+import type { GroupBase, OptionsOrGroups } from "react-select";
 
 const CURRENCY_OPTIONS: SelectOption[] = [
   { value: "USD", label: "USD" },
@@ -20,90 +23,179 @@ const FlightSearchPage = () => {
     formState: { errors },
   } = useForm<FlightSearch>();
 
-  const loadAirportOptions = (inputValue: string): Promise<SelectOption[]> => {
-    return new Promise<SelectOption[]>((resolve) => {
-      setTimeout(() => {
-        // For now, we're using CURRENCY_OPTIONS as a fallback
-        // When you're ready to use real airport data, replace this with:
-        const airports = getAirports(inputValue);
-        // const filtered = airports.filter(airport =>
-        //   airport.name.toLowerCase().includes(inputValue.toLowerCase()) ||
-        //   airport.code.toLowerCase().includes(inputValue.toLowerCase())
-        // ).map(airport => ({
-        //   value: airport.code,
-        //   label: `${airport.name} (${airport.code})`
-        // }));
-        // resolve(filtered);
-        console.log(airports);
-        resolve(airports);
-      }, 1000);
-    });
-  };
+  // Debounced search function
+  const searchAirports = useCallback(
+    async (inputValue: string, callback: (options: SelectOption[]) => void) => {
+      if (!inputValue) {
+        callback([]);
+        return;
+      }
+      try {
+        const airports = await getAirports(inputValue);
+        console.log("Search results:", airports);
+        callback(airports);
+      } catch (error) {
+        console.error("Error searching airports:", error);
+        callback([]);
+      }
+    },
+    []
+  );
+
+  // Create debounced version of search function
+  const debouncedSearch = useMemo(
+    () => debounce(searchAirports, 500), // 500ms delay
+    [searchAirports]
+  );
+
+  // Cleanup debounce on component unmount
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
+
+  const loadAirportOptions = useCallback(
+    (inputValue: string, callback: (options: SelectOption[]) => void) => {
+      return debouncedSearch(inputValue, callback);
+    },
+    [debouncedSearch]
+  );
+
+  // Wrapper function for AsyncSelect's loadOptions
+  const loadOptions = useCallback(
+    (
+      inputValue: string,
+      callback: (
+        options: OptionsOrGroups<SelectOption, GroupBase<SelectOption>>
+      ) => void
+    ) => {
+      loadAirportOptions(
+        inputValue,
+        callback as (options: SelectOption[]) => void
+      );
+      return undefined; // Return undefined to satisfy the type
+    },
+    [loadAirportOptions]
+  );
 
   const onSubmit = handleSubmit(async (data) => {
     console.log(data);
     const flights = await getFlightOffers(data);
-    console.log(flights);
+    // console.log(flights);
   });
 
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-5">
       <h1 className="text-2xl font-bold text-red-500">Flight search</h1>
-      <form className="flex flex-col gap-5" onSubmit={onSubmit}>
-        {/* <Input
-          label="Departure airport"
-          id="from"
-          type="text"
-          placeholder="LAX"
-          {...register("originLocationCode", { required: true })}
-        /> */}
-        <Controller
-          name="originLocationCode"
-          control={control}
-          rules={{ required: true }}
-          render={({ field: { onChange, value, ref } }) => (
-            <AsyncSelect<SelectOption>
-              ref={ref}
-              cacheOptions
-              defaultOptions={[]}
-              loadOptions={loadAirportOptions}
-              onChange={(selected: SingleValue<SelectOption>) =>
-                onChange(selected?.value || "")
-              }
-              placeholder="Select departure airport..."
-              className="w-full"
-              classNamePrefix="select"
-            />
-          )}
-        />
-        {errors.originLocationCode && (
-          <p className="text-red-500">This field is required</p>
-        )}
-        <Input
-          label="Arrival airport"
-          id="to"
-          type="text"
-          placeholder="MAD"
-          {...register("destinationLocationCode", { required: true })}
-        />
-        {errors.destinationLocationCode && (
-          <p className="text-red-500">This field is required</p>
-        )}
+      <form className="flex flex-col gap-2 w-1/3 relative" onSubmit={onSubmit}>
+        <div className="flex flex-col gap-1">
+          {/* DEPARTURE AIRPORT */}
+          <div className="flex flex-row gap-2 items-center">
+            <label
+              htmlFor="originLocationCode"
+              className="text-md font-medium text-end w-1/4"
+            >
+              Departure airport
+            </label>
+            <div className="w-3/4">
+              <Controller
+                name="originLocationCode"
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { onChange, ref } }) => (
+                  <AsyncSelect
+                    ref={ref}
+                    cacheOptions
+                    defaultOptions={[]}
+                    loadOptions={loadOptions}
+                    onChange={(selected: SingleValue<SelectOption>) =>
+                      onChange(selected?.value || "")
+                    }
+                    placeholder="Select departure airport..."
+                    classNames={{
+                      container: (state) => "rounded-md w-full",
+                    }}
+                    classNamePrefix="select"
+                  />
+                )}
+              />
+            </div>
+          </div>
+          <div className="h-5 w-3/4 flex justify-center">
+            {errors.originLocationCode && (
+              <p className="text-red-500 text-sm">This field is required</p>
+            )}
+          </div>
+        </div>
+
+        {/* ARRIVAL AIRPORT */}
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-row gap-2 items-center">
+            <label
+              htmlFor="destinationLocationCode"
+              className="text-md font-medium text-end w-1/4"
+            >
+              Arrival airport
+            </label>
+            <div className="w-3/4">
+              <Controller
+                name="destinationLocationCode"
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { onChange, ref } }) => (
+                  <AsyncSelect
+                    ref={ref}
+                    cacheOptions
+                    defaultOptions={[]}
+                    loadOptions={loadOptions}
+                    onChange={(selected: SingleValue<SelectOption>) =>
+                      onChange(selected?.value || "")
+                    }
+                    placeholder="Select arrival airport..."
+                    classNames={{
+                      container: (state) => "rounded-md w-full",
+                    }}
+                    classNamePrefix="select"
+                  />
+                )}
+              />
+            </div>
+          </div>
+          <div className="h-5 w-3/4 flex justify-center">
+            {errors.destinationLocationCode && (
+              <p className="text-red-500 text-sm">This field is required</p>
+            )}
+          </div>
+        </div>
+
+        {/* DEPARTURE DATE */}
         <Input
           label="Departure date"
           id="date"
           type="date"
           {...register("departureDate", { required: true })}
         />
-        {errors.departureDate && (
-          <p className="text-red-500">This field is required</p>
-        )}
+        <div className="h-5 w-3/4 flex justify-center">
+          {errors.departureDate && (
+            <p className="text-red-500 text-sm">This field is required</p>
+          )}
+        </div>
+
+        {/* RETURN DATE */}
         <Input
           label="Return date"
           id="returnDate"
           type="date"
           {...register("returnDate")}
         />
+        <div className="h-5 w-3/4 flex justify-center">
+          {errors.returnDate && (
+            <p className="text-red-500 text-sm">This field is required</p>
+          )}
+        </div>
+
+        {/* PASSENGERS */}
         <Input
           label="Passengers"
           id="passengers"
@@ -111,6 +203,13 @@ const FlightSearchPage = () => {
           placeholder="Number of passengers"
           {...register("adults", { required: true })}
         />
+        <div className="h-5 w-3/4 flex justify-center">
+          {errors.adults && (
+            <p className="text-red-500 text-sm">This field is required</p>
+          )}
+        </div>
+
+        {/* CURRENCY */}
         <Input
           label="Currency"
           id="currency"
@@ -118,6 +217,13 @@ const FlightSearchPage = () => {
           options={CURRENCY_OPTIONS}
           {...register("currencyCode", { required: true })}
         />
+        <div className="h-5 w-3/4 flex justify-center">
+          {errors.currencyCode && (
+            <p className="text-red-500 text-sm">This field is required</p>
+          )}
+        </div>
+
+        {/* SUBMIT */}
         <Button type="submit" variant="primary">
           Search
         </Button>

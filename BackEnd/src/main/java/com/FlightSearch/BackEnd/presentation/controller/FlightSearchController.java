@@ -29,11 +29,8 @@ public class FlightSearchController {
         return ResponseEntity.ok(this.flightService.searchAirport(keyword));
     }
 
-    @PostMapping("/search")
+    @PostMapping("/search-flight-offers")
     public int searchFlight(@RequestBody FlightSearchDTO searchDetails){
-        String uri = "test.api.amadeus.com/v2/shopping/flight-offers";
-        RestTemplate flightSearchClient = new RestTemplate();
-
         if(flightService.searchFlight(searchDetails) == 0){
             return 0;
         }else{
