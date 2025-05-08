@@ -12,5 +12,6 @@ import java.util.List;
 public class FlightOffer {
     private List<Itinerary> itineraries;
     private Price price;
+    private List<String> validatingAirlineCodes;
     private List<TravelerPricings> travelerPricings;
 }

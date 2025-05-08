@@ -3,6 +3,7 @@ package com.FlightSearch.BackEnd.presentation.controller;
 
 import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
 import com.FlightSearch.BackEnd.presentation.dto.AirportListDTO;
+import com.FlightSearch.BackEnd.presentation.dto.FlightOfferDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
 import com.FlightSearch.BackEnd.service.FlightService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class FlightSearchController {
     }
 
     @GetMapping("/search-flight-offers")
-    public ResponseEntity<Mono<FlightResponse>> searchFlight(
+    public ResponseEntity<Mono<List<FlightOfferDTO>>> searchFlight(
             @RequestParam(defaultValue = "") String passengers,
             @RequestParam(defaultValue = "") String departureDate,
             @RequestParam(defaultValue = "") String returnDate,

@@ -9,4 +9,5 @@ import java.util.List;
 @Data
 public class FlightResponse {
     private List<FlightOffer> data;
+    private OfferDictionary dictionaries;
 }

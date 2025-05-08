@@ -11,5 +11,5 @@ public class Segment {
     private flightDetail departure;
     private flightDetail arrival;
     private Aircraft aircraft;
-
+    private Operating operating;
 }
