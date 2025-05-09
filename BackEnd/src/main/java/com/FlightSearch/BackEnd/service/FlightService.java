@@ -19,7 +19,9 @@ import com.FlightSearch.BackEnd.presentation.dto.FlightOfferDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
 import com.FlightSearch.BackEnd.service.ApiClient.FlightApiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -153,6 +155,13 @@ public class FlightService {
                     return Mono.empty();
                 })
                 .map(airportData -> airportData);
+    }
+
+    public AirportData getAirportDataMoy(Location location,String iataCode) {
+        List<AirportData> data = flightApiService.airportSearchMoy(location.getCityCode()).getData();
+        return data.stream().filter(
+                        airportData2 -> ((AirportData)airportData2).getIataCode().equals(iataCode)
+                ).findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     //Get list of all flight stops with details

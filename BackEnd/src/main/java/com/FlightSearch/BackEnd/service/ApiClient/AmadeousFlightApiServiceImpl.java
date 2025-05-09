@@ -49,7 +49,7 @@ public class AmadeousFlightApiServiceImpl implements FlightApiService{
                             System.err.println("Error al obtener el token: " + e.getMessage());
                             return Mono.empty();
                         }
-                );
+                ).block() != null ? Mono.just(this.authToken) : Mono.empty();
     }
 
     @Override
@@ -75,6 +75,24 @@ public class AmadeousFlightApiServiceImpl implements FlightApiService{
                 .bodyToMono(AirportResponse.class);
 
         return performWithRetry(requestFunction);
+    }
+
+    public AirportResponse airportSearchMoy(String keyword){
+        getAuth();
+
+        AirportResponse resp = amadeousClient.get()
+                .uri(uriBuilder -> uriBuilder.path("v1/reference-data/locations")
+                        .queryParam("subType", "AIRPORT")
+                        .queryParam("keyword", keyword)
+                        .queryParam("view", "LIGHT")
+                        .build())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.authToken)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(AirportResponse.class)
+                .block();
+
+        return resp;
     }
 
     @Override
