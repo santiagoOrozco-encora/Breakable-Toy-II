@@ -1,16 +1,15 @@
 package com.FlightSearch.BackEnd.presentation.controller;
 
 
-import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
+import com.FlightSearch.BackEnd.data.model.AirportData;
+import com.FlightSearch.BackEnd.data.model.flightOfferModels.Location;
 import com.FlightSearch.BackEnd.presentation.dto.AirportListDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightOfferDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
 import com.FlightSearch.BackEnd.service.FlightService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.support.PagedListHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Mono;
 
 import java.util.Date;
@@ -48,4 +47,15 @@ public class FlightSearchController {
         }
         return ResponseEntity.ok(this.flightService.searchFlight(dto));
     }
+
+    @GetMapping("/airports")
+    public AirportData getAirportData(
+            @RequestParam(required = true) String cityCode,
+            @RequestParam(required = true) String iataCode
+    ) {
+        Location location1 = new Location();
+        location1.setCityCode(cityCode);
+        return this.flightService.getAirportDataMoy(location1, iataCode);
+    }
+
 }
