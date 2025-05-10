@@ -1,10 +1,14 @@
 package com.FlightSearch.BackEnd.data.model;
 
-import lombok.Data;
+import lombok.*;
 
 @Data
+@AllArgsConstructor
+@RequiredArgsConstructor
+@NoArgsConstructor
 public class AirportData {
     private String name;
+    @NonNull
     private String iataCode;
-    private Adress address;
+    private Address address;
 }
