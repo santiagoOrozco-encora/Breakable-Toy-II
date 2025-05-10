@@ -1,19 +1,14 @@
 package com.FlightSearch.BackEnd.presentation.controller;
 
 
-import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
 import com.FlightSearch.BackEnd.presentation.dto.AirportListDTO;
-import com.FlightSearch.BackEnd.presentation.dto.FlightOfferDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
+import com.FlightSearch.BackEnd.presentation.dto.OfferDTO;
 import com.FlightSearch.BackEnd.service.FlightService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.support.PagedListHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-import reactor.core.publisher.Mono;
 
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -28,12 +23,12 @@ public class FlightSearchController {
     }
 
     @GetMapping("/search-airport")
-    public ResponseEntity<Mono<List<AirportListDTO>>> getAirports(@RequestParam(required = true,defaultValue = "") String keyword) {
+    public ResponseEntity<List<AirportListDTO>> getAirports(@RequestParam(required = true,defaultValue = "") String keyword) {
         return ResponseEntity.ok(this.flightService.searchAirport(keyword));
     }
 
     @GetMapping("/search-flight-offers")
-    public ResponseEntity<Mono<List<FlightOfferDTO>>> searchFlight(
+    public ResponseEntity<OfferDTO> searchFlight(
             @RequestParam(defaultValue = "") String passengers,
             @RequestParam(defaultValue = "") String departureDate,
             @RequestParam(defaultValue = "") String returnDate,

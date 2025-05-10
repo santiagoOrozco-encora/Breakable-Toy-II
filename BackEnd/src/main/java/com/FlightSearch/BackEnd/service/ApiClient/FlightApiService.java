@@ -8,11 +8,11 @@ import reactor.core.publisher.Mono;
 
 public interface FlightApiService {
 
-    public Mono<AirportResponse> airportSearch(String keyword);
+    public AirportResponse airportSearch(String keyword);
 
-    public Mono<FlightResponse> flightOfferSearch(FlightSearchDTO searchDetails);
+    public FlightResponse flightOfferSearch(FlightSearchDTO searchDetails);
 
-    public Mono<String> getAuth();
+    public String getAuth();
 
 
 }

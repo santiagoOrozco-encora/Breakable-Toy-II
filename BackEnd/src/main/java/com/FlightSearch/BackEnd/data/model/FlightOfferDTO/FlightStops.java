@@ -11,6 +11,8 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 public class FlightStops {
     private String waitTime;
-    private Mono<AirportData> airportData;
+    private String arrivalTime;
+    private String departureTime;
+    private String airportData;
     private AirlineInfo airlineInfo;
 }

@@ -16,11 +16,11 @@ public class FlightDetails {
     @NonNull
     private String initialDayTime;
     @NonNull
-    private Mono<AirportData> initialAirport;
+    private String initialAirport;
     @NonNull
     private String FinalDayTime;
     @NonNull
-    private Mono<AirportData> finalAirport;
+    private String finalAirport;
     @NonNull
     private AirlineInfo airline;
     @NonNull

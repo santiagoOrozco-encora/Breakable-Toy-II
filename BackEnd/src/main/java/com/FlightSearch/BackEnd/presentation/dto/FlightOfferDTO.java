@@ -19,7 +19,6 @@ public class FlightOfferDTO {
    private FlightDetails goingFlight;
     @NonNull
     private Price price;
-
     @NonNull
     private List<TravelerPricings> travelerPricings;
 

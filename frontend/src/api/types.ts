@@ -1,24 +1,3 @@
-export type Flight = {
-  //Time
-  departureTime: Date;
-  arrivalTime: Date;
-  duration: number;
-
-  //Airports + codes
-  departureAirport: string;
-  departureAirportCode: string;
-  arrivalAirport: string;
-  arrivalAirportCode: string;
-  //Airline + operating airline
-  airline: string;
-  airlineCode: string;
-  operatingAirline?: string;
-  operatingAirlineCode?: string;
-
-  passengers: number;
-  currency: string;
-};
-
 export type FlightSearch = {
   originLocationCode: string;
   destinationLocationCode: string;
@@ -30,14 +9,14 @@ export type FlightSearch = {
 };
 
 export type Airport = {
-  airportName: string;
+  airportName?: string | null;
   iatacode: string;
-  address: Address;
+  address?: Address | null;
 };
 
 export type Address = {
-  cityName: string;
-  countryName: string;
+  cityName: string | null;
+  countryName: string | null;
 };
 
 export type SelectOption = {
@@ -45,19 +24,96 @@ export type SelectOption = {
   label: string;
 };
 
-//  a. Initial departure day/time
-//             and the final arrival day/time
-//  b. The departure airport and
-//             the arrival airport (name+code)
-//  c. The name and code of the airline
-//  d. The name and code of the operating
-//             airline (only if different from the main
-//             airline)
-//  e. Total time of the flight departure-arrival
-//             This include the flight time, layover time
-//             of all segments (if there is).
-//  f. If there are stops, the time at each
-//             airport stop showing the name and code
-//             of the airport
-//  g. The total price of the flight
-//  h. Price per traveler
+export type FlightOffer = {
+  offers: Offer[];
+  dictionaryDTO: Dictionary;
+};
+
+export type Dictionary = {
+  airports: AirportData;
+  aircrafts: Aircraft;
+  currencies: Currency;
+  carriers: Carrier;
+};
+
+export type AirportData = {
+  [key: string]: Airport;
+};
+
+export type Carrier = {
+  [key: string]: string;
+};
+
+export type Currency = {
+  [key: string]: string;
+};
+
+export type Aircraft = {
+  [key: string]: string;
+};
+
+export type Offer = {
+  goingFlights: Flight[];
+  returnFlights: Flight[];
+  price: Price;
+  travelerPricings: TravelPricing[];
+};
+
+export type Price = {
+  total: string;
+  currency: string;
+  grandTotal: string;
+  base: string;
+};
+
+export type TravelPricing = {
+  travelerId: string;
+  price: Price;
+  travelerType: string;
+  fareOption: string;
+  fareDetailsBySegment: FareDetailsBySegment[];
+};
+
+export type FareDetailsBySegment = {
+  segmentId: string;
+  cabin: string;
+  amenities: Amenity[];
+  includedCheckedBags: IncludedCheckedBags;
+  includedCabinBags: IncludedCabinBags;
+};
+
+export type Amenity = {
+  description: string;
+  amenityType: string;
+};
+
+export type IncludedCheckedBags = {
+  quantity: number;
+};
+
+export type IncludedCabinBags = {
+  quantity: number;
+};
+
+export type Flight = {
+  initialDayTime: string;
+  finalDayTime: string;
+  initialAirport: string;
+  finalAirport: string;
+  totalDuration: string;
+  airlineInfo: AirlineInfo;
+  flightStops: Segment[];
+};
+
+export type Segment = {
+  waitTime: string;
+  airportData: string;
+  airlineInfo: AirlineInfo;
+  departureTime: string;
+  arrivalTime: string;
+};
+
+export type AirlineInfo = {
+  name: string;
+  code: string;
+};

@@ -7,7 +7,6 @@ import lombok.*;
 @RequiredArgsConstructor
 @NoArgsConstructor
 public class AirportData {
-    @NonNull
     private String name;
     @NonNull
     private String iataCode;

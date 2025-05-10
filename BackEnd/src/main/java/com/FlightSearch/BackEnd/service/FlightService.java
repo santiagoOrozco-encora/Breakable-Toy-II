@@ -4,8 +4,11 @@ package com.FlightSearch.BackEnd.service;
 import com.FlightSearch.BackEnd.data.model.Address;
 import com.FlightSearch.BackEnd.data.model.AirportData;
 import com.FlightSearch.BackEnd.data.model.FlightOfferDTO.AirlineInfo;
+import com.FlightSearch.BackEnd.data.model.FlightOfferDTO.DictionaryDTO;
 import com.FlightSearch.BackEnd.data.model.FlightOfferDTO.FlightDetails;
 import com.FlightSearch.BackEnd.data.model.FlightOfferDTO.FlightStops;
+import com.FlightSearch.BackEnd.data.model.apiRespose.AirportResponse;
+import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
 import com.FlightSearch.BackEnd.data.model.flightOfferModels.FlightOffer;
 import com.FlightSearch.BackEnd.data.model.flightOfferModels.Location;
 import com.FlightSearch.BackEnd.data.model.flightOfferModels.OfferDictionary;
@@ -17,66 +20,60 @@ import com.FlightSearch.BackEnd.data.model.flightOfferModels.travelerPricing.Tra
 import com.FlightSearch.BackEnd.presentation.dto.AirportListDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightOfferDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
+import com.FlightSearch.BackEnd.presentation.dto.OfferDTO;
 import com.FlightSearch.BackEnd.service.ApiClient.FlightApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
 public class FlightService {
 
     private final FlightApiService flightApiService;
+    private final Map<String,AirportData> dataCache = new ConcurrentHashMap<>();
 
     @Autowired
     public FlightService(FlightApiService flightApiService) {
         this.flightApiService = flightApiService;
-
     }
 
     //Search airport matching keyword
-    public Mono<List<AirportListDTO>> searchAirport(String keyword) {
-        return this.flightApiService.airportSearch(keyword).map(airportResponse -> {
-            if(airportResponse != null && airportResponse.getData() != null){
-                return airportResponse.getData().stream()
-                        .map(this::convertToAirportListDTO)
-                        .collect(Collectors.toList());
-            }
-            return List.of();
-        });
+    public List<AirportListDTO> searchAirport(String keyword) {
+        AirportResponse apiResponse = flightApiService.airportSearch(keyword);
+        if(apiResponse.getData() != null){
+            return apiResponse.getData().stream()
+                    .map(this::convertToAirportListDTO)
+                    .toList();
+        }
 
+        return List.of();
     }
 
     //Conversion from Data to DTO
     private AirportListDTO convertToAirportListDTO(AirportData airportData){
         AirportListDTO dto = new AirportListDTO();
         Address airportAddress = airportData.getAddress();
-//        BeanUtils.copyProperties(airportData,dto);
         dto.setValue(airportData.getIataCode());
         dto.setLabel(String.format("%s (%s,%s)",airportData.getName(),airportAddress.getCountryName(),airportAddress.getCityName()));
         return dto;
     }
 
     //Search flight
-    public Mono<List<FlightOfferDTO>> searchFlight(FlightSearchDTO searchDetails){
-        return this.flightApiService.flightOfferSearch(searchDetails)
-                .flatMap(flightResponse -> {
-                    OfferDictionary dictionary = flightResponse.getDictionaries();
-
-                    if(flightResponse.getData() != null){
-                        return Flux.fromIterable(flightResponse.getData())
-                                .map(flightOffer ->
-                                    convertToFlightOfferDTO(flightOffer,dictionary))
-                                .collectList();
-            }
-            return Mono.just(List.of());
-        });
+    public OfferDTO searchFlight(FlightSearchDTO searchDetails){
+        FlightResponse apiResponse = this.flightApiService.flightOfferSearch(searchDetails);
+        OfferDictionary dictionary = apiResponse.getDictionaries();
+        List<FlightOfferDTO> flightOffers = List.of();
+        if(apiResponse.getData() != null){
+            flightOffers = apiResponse.getData().stream()
+                    .map(flightOffer -> convertToFlightOfferDTO(flightOffer,dictionary))
+                    .toList();
+        }
+        return populateOfferDTO(flightOffers,dictionary);
     }
 
     //Convert Flight offer to DTO
@@ -93,7 +90,12 @@ public class FlightService {
 
             FlightDetails returningFlightDetails = getFlightDetails(comingItinerary,dictionary);
 
-            return new FlightOfferDTO(goingFlightDetails,offerPrice,travelerPricings,returningFlightDetails);
+            return new FlightOfferDTO(
+                            goingFlightDetails,
+                            offerPrice,
+                            travelerPricings,
+                            returningFlightDetails
+                    );
 
         }else{
             return new FlightOfferDTO(goingFlightDetails,offerPrice,travelerPricings);
@@ -108,7 +110,7 @@ public class FlightService {
         // Origin information
         flightDetail departure = flightDetails.getDeparture();
         String initialDayTime = departure.getAt();
-        Mono<AirportData> initialAirportData = getAirportData(dictionary.getLocations().get(departure.getIataCode()),departure.getIataCode());
+        String initialAirport = departure.getIataCode();
 
         // Airline information
         AirlineInfo airlineInfo = new AirlineInfo(dictionary.getCarriers().get(flightDetails.getCarrierCode()), flightDetails.getCarrierCode());
@@ -118,41 +120,47 @@ public class FlightService {
             // Destination information
             flightDetail arrival = flightDetails.getArrival();
             String finalDayTime = arrival.getAt();
-            Mono<AirportData> destinationAirportData = getAirportData(dictionary.getLocations().get(arrival.getIataCode()),arrival.getIataCode());
+            String finalAirport = arrival.getIataCode();
 
-            return new FlightDetails(initialDayTime,initialAirportData,finalDayTime,destinationAirportData,airlineInfo, flightDetails.getDuration());
+            return new FlightDetails(
+                            initialDayTime,
+                            initialAirport,
+                            finalDayTime,
+                            finalAirport,
+                            airlineInfo,
+                            itinerary.getDuration()
+                    );
         }else{
-            List<Segment> stopSegmentList = itinerary.getSegments().subList(0,itinerary.getSegments().size()-1);
 
-            List<FlightStops> flightStops = getFlightStops(stopSegmentList,dictionary);
+            List<FlightStops> flightStops = getFlightStops(itinerary.getSegments(),dictionary);
 
             // Destination information
             Segment finalSegment = itinerary.getSegments().getLast();
             flightDetail arrival = finalSegment.getArrival();
             String finalDayTime = arrival.getAt();
+            String finalAirport = arrival.getIataCode();
 
-            Mono<AirportData> destinationAirportData = getAirportData(dictionary.getLocations().get(arrival.getIataCode()),arrival.getIataCode());
-
-            return new FlightDetails(initialDayTime,initialAirportData,finalDayTime,destinationAirportData,airlineInfo, flightDetails.getDuration(),flightStops);
-
+            return  new FlightDetails(
+                            initialDayTime,
+                            initialAirport,
+                            finalDayTime,
+                            finalAirport,
+                            airlineInfo,
+                            itinerary.getDuration(),
+                            flightStops
+                    );
         }
-
     }
 
     //Get airport information filtering with IATA code
-    private Mono<AirportData> getAirportData(Location location,String iataCode) {
-        return this.flightApiService.airportSearch(location.getCityCode())
-                .flatMap(airportResponse -> {
-                    if (airportResponse != null && airportResponse.getData() != null) {
-                        return airportResponse.getData().stream()
-                                .filter(airportData -> airportData.getIataCode().equals(iataCode))
-                                .findFirst()
-                                .map(Mono::just) // Convert Optional to Mono
-                                .orElse(Mono.empty());
-                    }
-                    return Mono.empty();
-                })
-                .map(airportData -> airportData);
+    private AirportData getAirportData(Location location, String iataCode) {
+//        System.out.println("Cache info:"+ dataCache);
+        if(dataCache.containsKey(iataCode)){
+            System.out.println("From the cache");
+            return dataCache.get(iataCode);
+        }
+        List<AirportData> airportData = flightApiService.airportSearch(location.getCityCode()).getData();
+        return airportData.stream().filter(airportData1 -> airportData1.getIataCode().equals(iataCode)).findFirst().orElse(new AirportData(iataCode));
     }
 
     //Get list of all flight stops with details
@@ -161,10 +169,10 @@ public class FlightService {
                 .skip(1)
                 .limit(segmentList.size()-1)
                 .map(segment -> {
-                    int currentIndex = segmentList.indexOf(segment);
-                    if(currentIndex > 0){
-                        Segment prevSegment = segmentList.get(currentIndex-1);
-                        return convertToFlightStop(prevSegment.getDeparture().getAt(),segment,dictionary);
+                    int current = segmentList.indexOf(segment);
+                    if(current>0){
+                        Segment prevSeg = segmentList.get(current-1);
+                        return convertToFlightStop(prevSeg.getArrival().getAt(),segment,dictionary);
                     }
                     return null;
                 })
@@ -188,9 +196,24 @@ public class FlightService {
         );
 
         AirlineInfo airlineInfo = new AirlineInfo(dictionary.getCarriers().get(segment.getCarrierCode()), segment.getCarrierCode());
-        Mono<AirportData> airportData = getAirportData(dictionary.getLocations().get(segment.getDeparture().getIataCode()),segment.getDeparture().getIataCode());
+        String airportCode = segment.getDeparture().getIataCode();
 
-        return new FlightStops(waitTimeFormatted,airportData,airlineInfo);
+        return  new FlightStops(waitTimeFormatted,segment.getArrival().getAt(),segment.getDeparture().getAt(),airportCode,airlineInfo);
     }
 
+    private OfferDTO populateOfferDTO(List<FlightOfferDTO> flightOfferDTOList, OfferDictionary offerDictionary) {
+        Map<String,AirportData> airports = offerDictionary.getLocations().keySet().stream()
+                .distinct()
+                .collect(Collectors.toMap(
+                        iataCode -> iataCode,
+                        iataCode -> getAirportData(offerDictionary.getLocations().get(iataCode),iataCode)
+                ));
+        DictionaryDTO dictionaryDTO = new DictionaryDTO(
+                airports,
+                offerDictionary.getAircraft(),
+                offerDictionary.getCurrencies(),
+                offerDictionary.getCarriers()
+        );
+        return new OfferDTO(flightOfferDTOList,dictionaryDTO);
+    }
 }

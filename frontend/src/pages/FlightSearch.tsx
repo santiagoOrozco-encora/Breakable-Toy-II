@@ -1,11 +1,12 @@
 import Input from "../components/atoms/Input";
-import { useForm, Controller, Control } from "react-hook-form";
-import { Airport, FlightSearch, SelectOption } from "../api/types";
+import { useForm, Controller } from "react-hook-form";
+import { FlightSearch, SelectOption } from "../api/types";
 import { getFlightOffers, getAirports } from "../api/service";
 import Button from "../components/atoms/Button";
 import AsyncSelect from "react-select/async";
 import { SingleValue } from "react-select";
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import debounce from "lodash/debounce";
 import type { GroupBase, OptionsOrGroups } from "react-select";
 
@@ -16,6 +17,9 @@ const CURRENCY_OPTIONS: SelectOption[] = [
 ];
 
 const FlightSearchPage = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -32,10 +36,8 @@ const FlightSearchPage = () => {
       }
       try {
         const airports = await getAirports(inputValue);
-        console.log("Search results:", airports);
         callback(airports);
       } catch (error) {
-        console.error("Error searching airports:", error);
         callback([]);
       }
     },
@@ -80,14 +82,31 @@ const FlightSearchPage = () => {
   );
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log(data);
-    const flights = await getFlightOffers(data);
-    // console.log(flights);
+    setLoading(true);
+    setError(null);
+    try {
+      const flights = await getFlightOffers(data);
+      setLoading(false);
+      navigate("/FlightResults", { state: { flights } });
+    } catch (e) {
+      setLoading(false);
+      setError("Failed to fetch flight offers.");
+    }
   });
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="text-xl font-semibold text-blue-500">Loading flight offers...</div>
+        {/* Optionally add a spinner here */}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-5">
       <h1 className="text-2xl font-bold text-red-500">Flight search</h1>
+      {error && <div className="text-red-500 font-medium mb-2">{error}</div>}
       <form className="flex flex-col gap-2 w-1/3 relative" onSubmit={onSubmit}>
         <div className="flex flex-col gap-1">
           {/* DEPARTURE AIRPORT */}
@@ -114,7 +133,7 @@ const FlightSearchPage = () => {
                     }
                     placeholder="Select departure airport..."
                     classNames={{
-                      container: (state) => "rounded-md w-full",
+                      container: () => "rounded-md w-full",
                     }}
                     classNamePrefix="select"
                   />
@@ -154,7 +173,7 @@ const FlightSearchPage = () => {
                     }
                     placeholder="Select arrival airport..."
                     classNames={{
-                      container: (state) => "rounded-md w-full",
+                      container: () => "rounded-md w-full",
                     }}
                     classNamePrefix="select"
                   />
@@ -223,12 +242,19 @@ const FlightSearchPage = () => {
           )}
         </div>
 
+        {/* NON STOP */}
+        <Input
+          label="Non Stop"
+          id="nonStop"
+          type="checkbox"
+          {...register("nonStop")}
+        />
+
         {/* SUBMIT */}
         <Button type="submit" variant="primary">
           Search
         </Button>
       </form>
-      <a href="/FlightResults">Results</a>
     </div>
   );
 };
