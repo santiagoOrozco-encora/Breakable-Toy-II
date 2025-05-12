@@ -202,18 +202,21 @@ public class FlightService {
     }
 
     private OfferDTO populateOfferDTO(List<FlightOfferDTO> flightOfferDTOList, OfferDictionary offerDictionary) {
-        Map<String,AirportData> airports = offerDictionary.getLocations().keySet().stream()
-                .distinct()
-                .collect(Collectors.toMap(
-                        iataCode -> iataCode,
-                        iataCode -> getAirportData(offerDictionary.getLocations().get(iataCode),iataCode)
-                ));
-        DictionaryDTO dictionaryDTO = new DictionaryDTO(
-                airports,
-                offerDictionary.getAircraft(),
-                offerDictionary.getCurrencies(),
-                offerDictionary.getCarriers()
-        );
-        return new OfferDTO(flightOfferDTOList,dictionaryDTO);
+        if(!flightOfferDTOList.isEmpty()) {
+            Map<String, AirportData> airports = offerDictionary.getLocations().keySet().stream()
+                    .distinct()
+                    .collect(Collectors.toMap(
+                            iataCode -> iataCode,
+                            iataCode -> getAirportData(offerDictionary.getLocations().get(iataCode), iataCode)
+                    ));
+            DictionaryDTO dictionaryDTO = new DictionaryDTO(
+                    airports,
+                    offerDictionary.getAircraft(),
+                    offerDictionary.getCurrencies(),
+                    offerDictionary.getCarriers()
+            );
+            return new OfferDTO(flightOfferDTOList, dictionaryDTO);
+        }
+        return new OfferDTO();
     }
 }

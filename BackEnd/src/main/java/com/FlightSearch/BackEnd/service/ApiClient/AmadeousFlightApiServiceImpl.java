@@ -13,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Map;
 
 @Component
@@ -63,7 +64,7 @@ public class AmadeousFlightApiServiceImpl implements FlightApiService{
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(AirportResponse.class)
+                .bodyToMono(AirportResponse.class).delayElement(Duration.ofMillis(500))
                 .block();
     }
 

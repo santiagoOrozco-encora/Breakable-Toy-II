@@ -9,8 +9,8 @@ export type FlightSearch = {
 };
 
 export type Airport = {
-  airportName?: string | null;
-  iatacode: string;
+  name?: string | null;
+  iataCode: string;
   address?: Address | null;
 };
 
@@ -53,8 +53,8 @@ export type Aircraft = {
 };
 
 export type Offer = {
-  goingFlights: Flight[];
-  returnFlights: Flight[];
+  goingFlight: Flight;
+  returningFlight: Flight;
   price: Price;
   travelerPricings: TravelPricing[];
 };
@@ -100,8 +100,8 @@ export type Flight = {
   finalDayTime: string;
   initialAirport: string;
   finalAirport: string;
-  totalDuration: string;
-  airlineInfo: AirlineInfo;
+  totalTime: string;
+  airline: AirlineInfo;
   flightStops: Segment[];
 };
 

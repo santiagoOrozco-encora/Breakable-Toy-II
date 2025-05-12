@@ -26,5 +26,5 @@ public class FlightDetails {
     @NonNull
     private String totalTime;
 
-    private List<FlightStops> flightStops;
+    private List<FlightStops> segments;
 }

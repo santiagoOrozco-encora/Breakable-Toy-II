@@ -1,27 +1,54 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import Button from "../components/atoms/Button";
+import { FlightOffer } from "../api/types";
+import FlightDetailsCard from "../components/molecules/FlightDetailsCard";
 
 const FlightResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
   // flights is what we passed as { state: { flights } }
-  const flights = location.state?.flights;
+  const flights: FlightOffer = location.state?.flights;
+  const dictionary = flights.dictionaryDTO;
 
-  if (!flights) {
+  // if no flights are found, redirect to search page
+  if (flights.offers == null) {
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Flight Search Results</h1>
-        <div className="mb-4 text-red-500">No flight data found. Please search again.</div>
-        <button className="rounded bg-blue-500 text-white px-4 py-2" onClick={() => navigate("/")}>Back to Search</button>
+        <div className="mb-4 text-red-500">
+          No flight data found. Please search again.
+        </div>
+        <Button variant="secondary" onClick={() => navigate("/")}>
+          Back to Search
+        </Button>
       </div>
     );
   }
 
+  // render the flight offers
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="flex flex-col gap-3 mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Flight Search Results</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Render your flight offers here. For now, just JSON stringify as a placeholder */}
-        <pre className="col-span-full bg-gray-100 p-4 rounded text-xs overflow-x-auto">{JSON.stringify(flights, null, 2)}</pre>
+      <div className="flex justify-start">
+        <Button variant="secondary" onClick={() => navigate("/")}>
+          Back to Search
+        </Button>
+      </div>
+      <div className="flex flex-col gap-5">
+        {/* Flight offers */}
+        {flights.offers.map((offer, index) => {
+          return (
+            <FlightDetailsCard
+              offer={offer}
+              dictionary={dictionary}
+              index={index}
+              key={index}
+              onClick={() =>
+                navigate("/FlightDetails", { state: { offer, dictionary } })
+              }
+            />
+          );
+        })}
       </div>
     </div>
   );
