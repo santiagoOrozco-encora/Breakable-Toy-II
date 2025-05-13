@@ -64,6 +64,12 @@ export type Price = {
   currency: string;
   grandTotal: string;
   base: string;
+  fees: Fee[];
+};
+
+export type Fee = {
+  amount: string;
+  type: string;
 };
 
 export type TravelPricing = {
@@ -77,6 +83,7 @@ export type TravelPricing = {
 export type FareDetailsBySegment = {
   segmentId: string;
   cabin: string;
+  class: string;
   amenities: Amenity[];
   includedCheckedBags: IncludedCheckedBags;
   includedCabinBags: IncludedCabinBags;
@@ -85,6 +92,7 @@ export type FareDetailsBySegment = {
 export type Amenity = {
   description: string;
   amenityType: string;
+  isChargeable: boolean;
 };
 
 export type IncludedCheckedBags = {
@@ -102,15 +110,24 @@ export type Flight = {
   finalAirport: string;
   totalTime: string;
   airline: AirlineInfo;
-  flightStops: Segment[];
+  segments: Segment[];
 };
 
 export type Segment = {
+  id: string;
   waitTime: string;
   airportData: string;
+  duration: string;
   airlineInfo: AirlineInfo;
+  arrivalAirport: string;
+  departureAirport: string;
   departureTime: string;
   arrivalTime: string;
+  aircraft: AircraftInfo;
+};
+
+export type AircraftInfo = {
+  code: string;
 };
 
 export type AirlineInfo = {

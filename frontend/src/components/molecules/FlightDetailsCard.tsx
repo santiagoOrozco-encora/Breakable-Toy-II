@@ -1,4 +1,4 @@
-import { Dictionary, Offer } from "../../api/types";
+import { Dictionary, Offer, Segment } from "../../api/types";
 import FlightStop from "../atoms/flightStop";
 
 interface FlightDetailsCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -13,9 +13,18 @@ const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
   index,
   ...rest
 }) => {
+  const goingStops =
+    offer.goingFlight.segments.slice(1, offer.goingFlight.segments.length) ||
+    null;
+  const returningStops =
+    offer.returningFlight?.segments?.slice(
+      1,
+      offer.returningFlight?.segments?.length
+    ) || null;
   // render flight offer
   const renderFlightOffer = (
     offer: Offer,
+    stops: Segment[],
     index: number,
     type: "goingFlight" | "returningFlight"
   ) => {
@@ -52,10 +61,10 @@ const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
           <div className="flex flex-col gap-1 w-1/2 text-md">
             <p>{`${offer[type].totalTime.split("T")[1]}`}</p>
 
-            {offer[type].flightStops == null ? (
+            {stops == null ? (
               <p>No stops</p>
             ) : (
-              offer[type].flightStops.map((stop, index) => (
+              stops.map((stop, index) => (
                 <FlightStop key={index} stop={stop} dictionary={dictionary} />
               ))
             )}
@@ -106,13 +115,13 @@ const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
         // if the offer has a returning flight, render it
         <>
           <div className="w-full flex flex-col gap-2">
-            {renderFlightOffer(offer, index, "goingFlight")}
+            {renderFlightOffer(offer, goingStops, index, "goingFlight")}
             <hr className="border-gray-300" />
-            {renderFlightOffer(offer, index, "returningFlight")}
+            {renderFlightOffer(offer, returningStops, index, "returningFlight")}
           </div>
         </>
       ) : (
-        renderFlightOffer(offer, index, "goingFlight")
+        renderFlightOffer(offer, goingStops, index, "goingFlight")
       )}
       {renderPrice(offer)}
     </div>

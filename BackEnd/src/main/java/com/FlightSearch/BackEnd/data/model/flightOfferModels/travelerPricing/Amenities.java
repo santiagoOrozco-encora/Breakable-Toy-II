@@ -6,4 +6,5 @@ import lombok.Data;
 public class Amenities {
     private String description;
     private String amenityType;
+    private Boolean isChargeable;
 }

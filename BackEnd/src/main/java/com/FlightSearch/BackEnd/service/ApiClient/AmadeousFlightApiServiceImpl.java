@@ -20,8 +20,8 @@ import java.util.Map;
 public class AmadeousFlightApiServiceImpl implements FlightApiService{
 
     private final WebClient amadeousClient;
-    private String apiKey = "QqVvecLADqY1qTNfDL5bFhjbDVRYfnXY";
-    private String apiSecret ="5WB7Ef3Lw6j3IdM0";
+    private String apiKey = "otAGkRIw6ospLmhuUCIqbNGXMwev5ENu";
+    private String apiSecret ="jPjD6cUDNy6KsktE";
     private volatile String authToken;
 
     public AmadeousFlightApiServiceImpl(WebClient.Builder webClientBuilder) {

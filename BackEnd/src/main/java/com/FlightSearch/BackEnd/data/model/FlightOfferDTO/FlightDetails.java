@@ -2,6 +2,7 @@ package com.FlightSearch.BackEnd.data.model.FlightOfferDTO;
 
 import com.FlightSearch.BackEnd.data.model.AirportData;
 import com.FlightSearch.BackEnd.data.model.flightOfferModels.Price;
+import com.FlightSearch.BackEnd.data.model.flightOfferModels.itinerary.Aircraft;
 import com.FlightSearch.BackEnd.data.model.flightOfferModels.travelerPricing.TravelerPricings;
 import lombok.*;
 import reactor.core.publisher.Mono;
@@ -25,6 +26,9 @@ public class FlightDetails {
     private AirlineInfo airline;
     @NonNull
     private String totalTime;
-
+    @NonNull
     private List<FlightStops> segments;
+
+    private Aircraft aircraft;
+
 }

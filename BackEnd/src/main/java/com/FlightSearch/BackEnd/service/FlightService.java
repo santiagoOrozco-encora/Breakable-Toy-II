@@ -113,7 +113,8 @@ public class FlightService {
         String initialAirport = departure.getIataCode();
 
         // Airline information
-        AirlineInfo airlineInfo = new AirlineInfo(dictionary.getCarriers().get(flightDetails.getCarrierCode()), flightDetails.getCarrierCode());
+        AirlineInfo airlineInfo = new AirlineInfo(dictionary.getCarriers().get(flightDetails.getCarrierCode()),
+                flightDetails.getCarrierCode());
 
         // If the itinerary has not stops
         if(itinerary.getSegments().size() == 1){
@@ -123,14 +124,17 @@ public class FlightService {
             String finalAirport = arrival.getIataCode();
 
             return new FlightDetails(
-                            initialDayTime,
-                            initialAirport,
-                            finalDayTime,
-                            finalAirport,
-                            airlineInfo,
-                            itinerary.getDuration()
-                    );
-        }else{
+                    initialDayTime,
+                    initialAirport,
+                    finalDayTime,
+                    finalAirport,
+                    airlineInfo,
+                    itinerary.getDuration(),
+                    List.of(),
+                    itinerary.getSegments().getFirst().getAircraft()
+            );
+        }
+        else{
 
             List<FlightStops> flightStops = getFlightStops(itinerary.getSegments(),dictionary);
 
@@ -141,14 +145,14 @@ public class FlightService {
             String finalAirport = arrival.getIataCode();
 
             return  new FlightDetails(
-                            initialDayTime,
-                            initialAirport,
-                            finalDayTime,
-                            finalAirport,
-                            airlineInfo,
-                            itinerary.getDuration(),
-                            flightStops
-                    );
+                    initialDayTime,
+                    initialAirport,
+                    finalDayTime,
+                    finalAirport,
+                    airlineInfo,
+                    itinerary.getDuration(),
+                    flightStops
+            );
         }
     }
 
@@ -166,17 +170,19 @@ public class FlightService {
     //Get list of all flight stops with details
     private List<FlightStops> getFlightStops(List<Segment> segmentList,OfferDictionary dictionary){
         return segmentList.stream()
-                .skip(1)
-                .limit(segmentList.size()-1)
                 .map(segment -> {
                     int current = segmentList.indexOf(segment);
                     if(current>0){
                         Segment prevSeg = segmentList.get(current-1);
                         return convertToFlightStop(prevSeg.getArrival().getAt(),segment,dictionary);
+                    }else{
+                        return new FlightStops(segment.getId(),segment.getArrival().getAt(),segment.getDeparture().getAt(),
+                                new AirlineInfo(dictionary.getCarriers().get(segment.getCarrierCode()),segment.getCarrierCode()),
+                                segment.getDeparture().getIataCode(),segment.getDeparture().getIataCode(),
+                                segment.getArrival().getIataCode(),segment.getAircraft(),
+                                segment.getDuration());
                     }
-                    return null;
                 })
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -198,7 +204,9 @@ public class FlightService {
         AirlineInfo airlineInfo = new AirlineInfo(dictionary.getCarriers().get(segment.getCarrierCode()), segment.getCarrierCode());
         String airportCode = segment.getDeparture().getIataCode();
 
-        return  new FlightStops(waitTimeFormatted,segment.getArrival().getAt(),segment.getDeparture().getAt(),airportCode,airlineInfo);
+        return  new FlightStops(segment.getId(),waitTimeFormatted,segment.getArrival().getAt(),
+                segment.getDeparture().getAt(),airlineInfo,airportCode,segment.getDeparture().getIataCode(),
+                segment.getArrival().getIataCode(),segment.getAircraft(),segment.getDuration());
     }
 
     private OfferDTO populateOfferDTO(List<FlightOfferDTO> flightOfferDTOList, OfferDictionary offerDictionary) {
