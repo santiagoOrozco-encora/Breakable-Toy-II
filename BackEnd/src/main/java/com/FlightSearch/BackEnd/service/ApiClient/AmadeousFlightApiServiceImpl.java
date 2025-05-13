@@ -13,14 +13,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Map;
 
 @Component
 public class AmadeousFlightApiServiceImpl implements FlightApiService{
 
     private final WebClient amadeousClient;
-    private String apiKey = "QqVvecLADqY1qTNfDL5bFhjbDVRYfnXY";
-    private String apiSecret ="5WB7Ef3Lw6j3IdM0";
+    private String apiKey = "otAGkRIw6ospLmhuUCIqbNGXMwev5ENu";
+    private String apiSecret ="jPjD6cUDNy6KsktE";
     private volatile String authToken;
 
     public AmadeousFlightApiServiceImpl(WebClient.Builder webClientBuilder) {
@@ -63,7 +64,7 @@ public class AmadeousFlightApiServiceImpl implements FlightApiService{
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(AirportResponse.class)
+                .bodyToMono(AirportResponse.class).delayElement(Duration.ofMillis(500))
                 .block();
     }
 

@@ -9,8 +9,8 @@ export type FlightSearch = {
 };
 
 export type Airport = {
-  airportName?: string | null;
-  iatacode: string;
+  name?: string | null;
+  iataCode: string;
   address?: Address | null;
 };
 
@@ -53,8 +53,8 @@ export type Aircraft = {
 };
 
 export type Offer = {
-  goingFlights: Flight[];
-  returnFlights: Flight[];
+  goingFlight: Flight;
+  returningFlight: Flight;
   price: Price;
   travelerPricings: TravelPricing[];
 };
@@ -64,6 +64,12 @@ export type Price = {
   currency: string;
   grandTotal: string;
   base: string;
+  fees: Fee[];
+};
+
+export type Fee = {
+  amount: string;
+  type: string;
 };
 
 export type TravelPricing = {
@@ -77,6 +83,7 @@ export type TravelPricing = {
 export type FareDetailsBySegment = {
   segmentId: string;
   cabin: string;
+  class: string;
   amenities: Amenity[];
   includedCheckedBags: IncludedCheckedBags;
   includedCabinBags: IncludedCabinBags;
@@ -85,6 +92,7 @@ export type FareDetailsBySegment = {
 export type Amenity = {
   description: string;
   amenityType: string;
+  isChargeable: boolean;
 };
 
 export type IncludedCheckedBags = {
@@ -100,17 +108,26 @@ export type Flight = {
   finalDayTime: string;
   initialAirport: string;
   finalAirport: string;
-  totalDuration: string;
-  airlineInfo: AirlineInfo;
-  flightStops: Segment[];
+  totalTime: string;
+  airline: AirlineInfo;
+  segments: Segment[];
 };
 
 export type Segment = {
+  id: string;
   waitTime: string;
   airportData: string;
+  duration: string;
   airlineInfo: AirlineInfo;
+  arrivalAirport: string;
+  departureAirport: string;
   departureTime: string;
   arrivalTime: string;
+  aircraft: AircraftInfo;
+};
+
+export type AircraftInfo = {
+  code: string;
 };
 
 export type AirlineInfo = {

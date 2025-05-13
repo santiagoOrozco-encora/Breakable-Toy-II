@@ -8,6 +8,7 @@ import java.util.List;
 public class FareDetailsBySegment {
     private String segmentId;
     private String cabin;
+    private String classF;
     private List<Amenities> amenities;
     private IncludedCheckedBags includedCheckedBags;
     private IncludedCabinBags includedCabinBags;

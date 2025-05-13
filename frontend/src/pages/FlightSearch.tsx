@@ -82,6 +82,7 @@ const FlightSearchPage = () => {
   );
 
   const onSubmit = handleSubmit(async (data) => {
+    console.log(data);
     setLoading(true);
     setError(null);
     try {
@@ -97,7 +98,9 @@ const FlightSearchPage = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <div className="text-xl font-semibold text-blue-500">Loading flight offers...</div>
+        <div className="text-xl font-semibold text-blue-500">
+          Loading flight offers...
+        </div>
         {/* Optionally add a spinner here */}
       </div>
     );

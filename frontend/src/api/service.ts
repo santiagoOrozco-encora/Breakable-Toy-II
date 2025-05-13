@@ -14,7 +14,6 @@ export const getFlightOffers = async (params: FlightSearch) => {
   url.searchParams.set("nonStop", params.nonStop ? "true" : "false");
   const response = await fetch(url);
   const data: FlightOffer[] = await response.json();
-  console.log(data);
   return data;
 };
 
@@ -23,6 +22,5 @@ export const getAirports = async (params: string) => {
   url.searchParams.set("keyword", params);
   const response = await fetch(url);
   const data: SelectOption[] = await response.json();
-  console.log(data);
   return data;
 };
