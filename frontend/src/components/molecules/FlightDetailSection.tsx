@@ -5,14 +5,12 @@ interface FlightDetailSectionProps {
   flight: Flight;
   dictionary: Dictionary;
   fareDetails: FareDetailsBySegment[];
-  setFareDetailsValue: (fareDetails: FareDetailsBySegment | null) => void;
 }
 
 const FlightDetailSection: React.FC<FlightDetailSectionProps> = ({
   flight,
   dictionary,
   fareDetails,
-  setFareDetailsValue,
 }) => {
   return (
     <div className="w-full flex flex-col gap-5 rounded p-2">
@@ -25,7 +23,6 @@ const FlightDetailSection: React.FC<FlightDetailSectionProps> = ({
             segment={segment}
             dictionary={dictionary}
             fareDetails={fareDetailsBySegment}
-            setFareDetailsValue={setFareDetailsValue}
           />
         );
       })}

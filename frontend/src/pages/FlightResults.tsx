@@ -2,22 +2,56 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../components/atoms/Button";
 import { Offer } from "../api/types";
 import FlightDetailsCard from "../components/molecules/FlightDetailsCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { sortFlights } from "../api/service";
 
 const FlightResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [orderBy, setOrderBy] = useState("");
-  const [orderDirection, setOrderDirection] = useState("asc");
+  const [orderBy, setOrderBy] = useState<string>("");
+  const [filterBy, setFilterBy] = useState<string[]>([]);
+  const [orderDirection, setOrderDirection] = useState<string>("asc");
   const [flights, setFlights] = useState(location.state?.flights);
   // flights is what we passed as { state: { flights } }
   const dictionary = flights?.dictionaryDTO || {};
 
+  useEffect(() => {
+    if (filterBy.includes("price") && filterBy.includes("duration")) {
+      setOrderBy("price,duration");
+    } else if (filterBy.includes("price")) {
+      setOrderBy("price");
+    } else if (filterBy.includes("duration")) {
+      setOrderBy("duration");
+    } else {
+      setOrderBy("");
+    }
+  }, [filterBy]);
+
+  useEffect(() => {
+    filterFlights(orderBy, orderDirection);
+  }, [orderBy, orderDirection]);
+
+  const toggleFilters = (filter: string) => {
+    setFilterBy((prev) => {
+      if (prev.includes(filter)) {
+        return prev.filter((f) => f !== filter);
+      } else {
+        return [...prev, filter];
+      }
+    });
+  };
+
+  const clearFilters = () => {
+    setFilterBy([]);
+    setOrderBy("");
+    setOrderDirection("asc");
+  };
+
   const filterFlights = async (filter: string, direction: string) => {
-    console.log(filter, direction);
-    setOrderBy(filter);
-    setOrderDirection(direction);
+    if (filter === "") {
+      setFlights(location.state?.flights);
+      return;
+    }
     const sortedFlightsResult = await sortFlights(filter, direction);
     setFlights(sortedFlightsResult);
   };
@@ -54,10 +88,7 @@ const FlightResults = () => {
             <Button
               variant="secondary"
               onClick={() => {
-                filterFlights(
-                  orderBy,
-                  orderDirection === "asc" ? "desc" : "asc"
-                );
+                setOrderDirection(orderDirection === "asc" ? "desc" : "asc");
               }}
             >
               {orderDirection === "asc" ? "↑" : "↓"}
@@ -66,26 +97,26 @@ const FlightResults = () => {
           {/* Filters */}
           <div className="flex  gap-5 p-2">
             <Button
-              variant={orderBy === "price" ? "primary" : "secondary"}
+              variant={filterBy.includes("price") ? "primary" : "secondary"}
               onClick={() => {
-                filterFlights("price", orderDirection);
+                toggleFilters("price");
               }}
             >
               Price
             </Button>
             <Button
-              variant={orderBy === "date" ? "primary" : "secondary"}
+              variant={filterBy.includes("duration") ? "primary" : "secondary"}
               onClick={() => {
-                filterFlights("date", orderDirection);
+                toggleFilters("duration");
               }}
             >
               Duration
             </Button>
-            {orderBy != "" ? (
+            {filterBy.length > 0 ? (
               <Button
                 variant="secondary"
                 onClick={() => {
-                  filterFlights("", orderDirection);
+                  clearFilters();
                 }}
               >
                 ✕

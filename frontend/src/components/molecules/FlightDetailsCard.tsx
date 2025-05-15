@@ -12,8 +12,6 @@ const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
   index,
   ...rest
 }) => {
-  console.log(offer);
-
   // render flight offer
   const renderFlightOffer = (
     offer: Offer,

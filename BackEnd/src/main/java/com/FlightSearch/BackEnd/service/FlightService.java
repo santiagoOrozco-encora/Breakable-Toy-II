@@ -38,7 +38,7 @@ public class FlightService {
     private final FlightApiService flightApiService;
     private final FlightApiService NinjaApiService;
     private final Map<String,AirportData> dataCache = new ConcurrentHashMap<>();
-    private OfferDTO offerCache = new OfferDTO();
+    private final HashMap<FlightSearchDTO,OfferDTO> offerCache = new HashMap<>();
 
     @Autowired
     public FlightService(
@@ -60,9 +60,14 @@ public class FlightService {
         AirportResponse backResponse = NinjaApiService.airportSearch(keyword);
         if(backResponse.getData() != null && !backResponse.getData().isEmpty()){
             System.out.println("using Ninja Api");
-            return backResponse.getData().stream()
+            List<AirportListDTO> res = backResponse.getData().stream()
                     .map(this::convertToAirportListDTO)
                     .toList();
+            if( !res.isEmpty()){
+                return res;
+            }else{
+                return List.of();
+            }
         }
 
         return List.of();
@@ -74,14 +79,16 @@ public class FlightService {
         Address airportAddress = airportData.getAddress();
         dto.setValue(airportData.getIataCode());
         dto.setLabel(String.format("%s (%s,%s)",airportData.getName(),airportAddress.getCountryName(),airportAddress.getCityName()));
-        System.out.println(dto);
         return dto;
     }
 
     //Search flight
     public OfferDTO searchFlight(FlightSearchDTO searchDetails){
+        if(offerCache.containsKey(searchDetails)){
+            System.out.println("Cache used");
+            return offerCache.get(searchDetails);
+        }
         FlightResponse apiResponse = this.flightApiService.flightOfferSearch(searchDetails);
-        System.out.println(apiResponse);
         OfferDictionary dictionary = apiResponse.getDictionaries();
         List<FlightOfferDTO> flightOffers = List.of();
         if(apiResponse.getData() != null){
@@ -90,56 +97,103 @@ public class FlightService {
                     .toList();
         }
 
+        OfferDTO newOfferDto = populateOfferDTO(flightOffers,dictionary);
+        offerCache.clear();
+        offerCache.put(searchDetails,newOfferDto);
 
-        offerCache = populateOfferDTO(flightOffers,dictionary);
-        System.out.println(offerCache);
-        return offerCache;
+        return newOfferDto;
     }
 
     //Filter flight
     public OfferDTO filterFlights(String filter, String order){
-        List<FlightOfferDTO> offers = offerCache.getOffers();
-        List<FlightOfferDTO> flightOffers = new ArrayList<>(offers);
-        System.out.println("Filtering results" + filter + order);
-        switch (filter){
-            case "price":
-                Comparator<FlightOfferDTO> priceComparator = Comparator.comparing(offer -> Float.parseFloat(offer.getPrice().getGrandTotal()));
-                if(order.equalsIgnoreCase("desc")){
-                    flightOffers.sort(priceComparator.reversed());
-                }else{
-                    flightOffers.sort(priceComparator);
-                    System.out.println("filtered by price");
-                }
-                break;
-            case "date":
-                Comparator<FlightOfferDTO> durationComparator = Comparator.comparing(offer -> {
-                    String totalTime = offer.getGoingFlight().getTotalTime().substring(2);
-                    System.out.println(offer.getGoingFlight().getTotalTime());
-                    System.out.println(totalTime);
-                    int indexOfH = totalTime.indexOf("H");
-                    int indexOfM = totalTime.indexOf("M");
+        if(!offerCache.isEmpty()) {
+            OfferDTO offers = offerCache.values().stream().toList().getFirst();
+            List<FlightOfferDTO> flightOffers = new ArrayList<>(offers.getOffers());
 
-                    int hours = Integer.parseInt(totalTime.substring(0,indexOfH));
-                    System.out.println(hours);
-                    int minutes = Integer.parseInt(totalTime.substring(indexOfH+1,indexOfM));
-                    System.out.println(minutes);
-                    System.out.println((minutes + hours*60));
-                    return  (minutes + (hours*60));
-                });
+            switch (filter) {
+                case "price":
+                    Comparator<FlightOfferDTO> priceComparator = Comparator.comparing(offer -> Float.parseFloat(offer.getPrice().getGrandTotal()));
+                    if (order.equalsIgnoreCase("desc")) {
+                        flightOffers.sort(priceComparator.reversed());
+                    } else {
+                        flightOffers.sort(priceComparator);
+                    }
+                    break;
+                case "duration":
+                    Comparator<FlightOfferDTO> durationComparator = Comparator.comparing(offer -> {
+                        String totalTime = offer.getGoingFlight().getTotalTime().substring(2);
+                        int indexOfH = totalTime.indexOf("H");
+                        int hours;
+                        int indexOfM = totalTime.indexOf("M");
+                        int minutes;
 
-                if(order.equalsIgnoreCase("desc")){
-                    flightOffers.sort(durationComparator.reversed());
-                }else{
-                    flightOffers.sort(durationComparator);
-                }
-                break;
-            default:
-                flightOffers = offerCache.getOffers();
+                        if (indexOfH > 0) {
+                            hours = Integer.parseInt(totalTime.substring(0, indexOfH));
+                        } else {
+                            hours = 0;
+                        }
+                        if (indexOfM > 0) {
+                            minutes = Integer.parseInt(totalTime.substring(indexOfH + 1, indexOfM));
+                        } else {
+                            minutes = 0;
+                        }
+                        return (minutes + (hours * 60));
+                    });
+
+                    if (order.equalsIgnoreCase("desc")) {
+                        flightOffers.sort(durationComparator.reversed());
+                    } else {
+                        flightOffers.sort(durationComparator);
+                    }
+                    break;
+                case "price,duration":
+                case "duration,price":
+                    Comparator<FlightOfferDTO> combinedComparator = getFlightOfferDTOComparator();
+                    if (order.equalsIgnoreCase("desc")) {
+                        flightOffers.sort(combinedComparator.reversed());
+                    } else {
+                        flightOffers.sort(combinedComparator);
+                    }
+                    break;
+                default:
+
+            }
+
+            return new OfferDTO(flightOffers,offers.getDictionaryDTO());
         }
-        System.out.println(flightOffers);
-        return new OfferDTO(flightOffers,offerCache.getDictionaryDTO());
-
+        return new OfferDTO();
     }
+
+    //Comparator with price and duration
+    private static Comparator<FlightOfferDTO> getFlightOfferDTOComparator() {
+        Comparator<FlightOfferDTO> combinedComparator = Comparator.comparing(offer -> {
+            String grandTotal = offer.getPrice().getGrandTotal();
+            return (grandTotal != null && !grandTotal.isEmpty()) ? Float.parseFloat(grandTotal) : Float.MAX_VALUE;
+        });
+        combinedComparator = combinedComparator.thenComparing(offer -> {
+            String totalTime = offer.getGoingFlight().getTotalTime();
+            if (totalTime.startsWith("PT")) {
+                String timePart = totalTime.substring(2);
+                long hours = 0;
+                long minutes = 0;
+
+                int hIndex = timePart.indexOf('H');
+                if (hIndex > 0) {
+                    hours = Long.parseLong(timePart.substring(0, hIndex));
+                    timePart = timePart.substring(hIndex + 1);
+                }
+
+                int mIndex = timePart.indexOf('M');
+                if (mIndex > 0) {
+                    minutes = Long.parseLong(timePart.substring(0, mIndex));
+                }
+                return (minutes + (hours * 60));
+            }
+            return Long.MAX_VALUE; // Handle cases with unexpected format
+        });
+        return combinedComparator;
+    }
+
     //Convert Flight offer to DTO
     private FlightOfferDTO convertToFlightOfferDTO(FlightOffer flightOffer, OfferDictionary dictionary){
         Itinerary goingItinerary = flightOffer.getItineraries().getFirst();
@@ -222,15 +276,14 @@ public class FlightService {
 
     //Get airport information filtering with IATA code
     private AirportData getAirportData(Location location, String iataCode) {
-//        System.out.println("Cache info:"+ dataCache);
         if(dataCache.containsKey(iataCode)){
             System.out.println("From the cache");
             return dataCache.get(iataCode);
         }
         List<AirportData> airportData = flightApiService.airportSearch(location.getCityCode()).getData();
 
-        List<AirportData> backUp = NinjaApiService.airportSearch(iataCode).getData();
 
+        List<AirportData> backUp = NinjaApiService.airportSearch(iataCode).getData();
         if(airportData.isEmpty() && !backUp.isEmpty()){
             AirportData res = backUp.stream().filter(airport -> airport.getIataCode().equals(iataCode)).findFirst().orElse(new AirportData(iataCode));
             dataCache.put(iataCode,res);
