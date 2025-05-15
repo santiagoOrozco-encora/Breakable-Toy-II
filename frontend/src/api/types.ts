@@ -31,7 +31,7 @@ export type FlightOffer = {
 
 export type Dictionary = {
   airports: AirportData;
-  aircrafts: Aircraft;
+  aircraft: Aircraft;
   currencies: Currency;
   carriers: Carrier;
 };
@@ -118,12 +118,22 @@ export type Segment = {
   waitTime: string;
   airportData: string;
   duration: string;
+  number: string;
   airlineInfo: AirlineInfo;
   arrivalAirport: string;
   departureAirport: string;
   departureTime: string;
   arrivalTime: string;
   aircraft: AircraftInfo;
+  operating: string;
+  stops: Stop[];
+};
+
+export type Stop = {
+  iataCode: string;
+  duration: string;
+  arrivalAt: string;
+  departureAt: string;
 };
 
 export type AircraftInfo = {

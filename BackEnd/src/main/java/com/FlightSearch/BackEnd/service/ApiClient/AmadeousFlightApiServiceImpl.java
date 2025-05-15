@@ -4,6 +4,8 @@ import com.FlightSearch.BackEnd.data.model.apiRespose.AirportResponse;
 import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -12,6 +14,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.util.Map;
@@ -60,12 +63,30 @@ public class AmadeousFlightApiServiceImpl implements FlightApiService{
                         .queryParam("subType", "AIRPORT")
                         .queryParam("keyword", keyword)
                         .queryParam("view", "LIGHT")
+
                         .build())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(AirportResponse.class).delayElement(Duration.ofMillis(500))
+                .onStatus(HttpStatusCode::is4xxClientError,clientResponse -> {
+                    if(clientResponse.statusCode() == HttpStatus.TOO_MANY_REQUESTS){
+                        return Mono.error(new TooManyRequestsException("Too many requests to the airport search API"));
+                    } else {
+                        return Mono.error(new RuntimeException("Client error during airport search: " + clientResponse.statusCode()));
+                    }
+                })
+                .bodyToMono(AirportResponse.class)
+                .retryWhen(Retry.from(retrySpec -> retrySpec
+                        .filter(throwable -> throwable instanceof TooManyRequestsException)
+                        .delayElements(Duration.ofMillis(500))))
+//                        .doBeforeRetry(retrySignal -> System.out.println("Too many requests, retrying airport search... attempt " + (retrySignal.totalRetries() + 1)))))
                 .block();
+    }
+
+    static class TooManyRequestsException extends RuntimeException {
+        public TooManyRequestsException(String message) {
+            super(message);
+        }
     }
 
     @Override
@@ -78,7 +99,7 @@ public class AmadeousFlightApiServiceImpl implements FlightApiService{
                 .queryParam("adults", details.getPassengers())
                 .queryParam("nonStop", details.getNonStop().toString())
                 .queryParam("currencyCode", details.getCurrency())
-                .queryParam("max","10");
+                .queryParam("max","20");
 
         if (details.getReturnDate() != null && !details.getReturnDate().isEmpty()) {
             uri.queryParam("returnDate",details.getReturnDate());

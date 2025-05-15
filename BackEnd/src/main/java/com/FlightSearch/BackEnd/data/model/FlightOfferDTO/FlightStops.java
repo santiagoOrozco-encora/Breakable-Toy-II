@@ -1,9 +1,12 @@
 package com.FlightSearch.BackEnd.data.model.FlightOfferDTO;
 
 import com.FlightSearch.BackEnd.data.model.AirportData;
+import com.FlightSearch.BackEnd.data.model.flightOfferModels.Stops;
 import com.FlightSearch.BackEnd.data.model.flightOfferModels.itinerary.Aircraft;
 import lombok.*;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -29,4 +32,10 @@ public class FlightStops {
     private Aircraft aircraft;
     @NonNull
     private String duration;
+    @NonNull
+    private String number;
+    @NonNull
+    private String operating;
+
+    private List<Stops> stops;
 }

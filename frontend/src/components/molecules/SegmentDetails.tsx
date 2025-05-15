@@ -1,80 +1,135 @@
 import { Dictionary, Segment, FareDetailsBySegment } from "../../api/types";
+import Button from "../atoms/Button";
 
 interface SegmentDetailsProps {
   segment: Segment;
   dictionary: Dictionary;
   fareDetails: FareDetailsBySegment | undefined;
+  setFareDetailsValue: (fareDetails: FareDetailsBySegment | null) => void;
 }
 
 const SegmentDetails: React.FC<SegmentDetailsProps> = ({
   segment,
   dictionary,
   fareDetails,
+  setFareDetailsValue,
 }) => {
   return (
-    <div className="flex gap-2 rounded p-2 max-h-40 overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-      {/* Flight details */}
-      <div className="flex flex-col gap-2 w-2/3 p-3 justify-between">
-        {/* Duration */}
-        <div className="flex gap-2 justify-between">
-          <div className="flex">
-            <p>{segment.departureTime.split("T")[0]} / </p>
-            <p>{segment.departureTime.split("T")[1]}</p>
-          </div>
-          <p> ({segment.duration}) </p>
-          <div className="flex">
-            <p>{segment.arrivalTime.split("T")[0]} / </p>
-            <p>{segment.arrivalTime.split("T")[1]}</p>
-          </div>
+    <div className="flex gap-2 items-center flex-col w-full max-h-fit">
+      {/* Wait time */}
+      {segment.waitTime !== null ? (
+        <div className="w-full flex flex-col justify-center items-center text-center rounded bg-amber-100 shadow-md hover:shadow-lg transition-shadow">
+          <p className="text-gray-500">{segment.waitTime} hrs wait</p>
         </div>
-        {/* Airports */}
-        <div className="flex gap-2 text-md justify-between">
-          <p>
-            {dictionary.airports[segment.departureAirport]?.name} (
-            {segment.departureAirport})
-          </p>
-          <p> - </p>
-          <div className="flex flex-col text-sm text-end">
-            <p>
-              {dictionary.airports[segment.arrivalAirport]?.name} (
-              {segment.arrivalAirport})
-            </p>
-            {segment.waitTime !== null && (
-              <p className="text-gray-500">{segment.waitTime} hrs wait</p>
-            )}
-          </div>
-        </div>
-        {/* Airline */}
-        <div className="flex text-sm">
-          <p>{segment.airlineInfo.name}</p>
-          <p>({segment.airlineInfo.code})</p>
-        </div>
-      </div>
-      {/* Travelers amenities */}
-      <div className="flex flex-col gap-2 w-1/3 text-sm">
-        <h2 className="text-start text-lg font-bold">Travel details</h2>
-        {/* Cabin and class */}
-        <div className="flex gap-2">
-          <p>Cabin:</p>
-          <p>{fareDetails?.cabin}</p>
-        </div>
-        <div className="flex gap-2">
-          <p>Class:</p>
-          <p>{fareDetails?.class}</p>
-        </div>
-        <hr />
-        {/* Amenities */}
-        <h2 className="text-start text-lg font-bold">Amenities</h2>
-        <div className="flex flex-col gap-2">
-          <p>Checked bags:{fareDetails?.includedCheckedBags.quantity}</p>
-          {fareDetails?.amenities.map((amenity, index) => (
-            <div key={index} className="flex gap-2 flex-col">
-              <p className="text-wrap text-ellipsis">{amenity.description}</p>
-              <p className="text-xs">
-                {amenity.isChargeable ? "Chargeable" : "Not chargeable"}
-              </p>
+      ) : null}
+
+      <div className="flex gap-2 w-full rounded max-h-45 shadow-md hover:shadow-lg transition-shadow justify-between">
+        <div className="flex flex-col gap-2 w-full max-w-full min-w-2/3 p-5 justify-between">
+          {/* Flight details */}
+          <div className="flex gap-2 w-full justify-between">
+            {/* Left */}
+            <div className="flex flex-col gap-2 items-start">
+              {/* Departure time */}
+              <div className="flex text-wrap">
+                <p>{segment.departureTime.split("T")[0]} / </p>
+                <p>{segment.departureTime.split("T")[1]}</p>
+              </div>
+              {/* Departure Airport flight number*/}
+              <div className="flex flex-col text-sm items-start text-wrap max-w-50 text-left">
+                <p className="text-start">
+                  {dictionary.airports[segment.departureAirport]?.name} (
+                  {segment.departureAirport})
+                </p>
+                <strong className="text-xs">{segment.number}</strong>
+              </div>
             </div>
-          ))}
+            {/* Center */}
+            <div className="flex flex-col gap-2 items-center">
+              {/* Duration */}
+              <p> ({segment.duration.split("T")[1]}) </p>
+              {/* Stops */}
+              <div className="flex flex-col gap-2 items-center justify-center text-xs">
+                {segment.stops != null ? (
+                  segment.stops.map((stop, index) => (
+                    <div key={index} className="flex gap-2">
+                      <p>
+                        ({stop.iataCode}){" "}
+                        {dictionary.airports[stop.iataCode]?.name}
+                      </p>
+                      <p>{stop.duration.split("T")[1]}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p>No stops</p>
+                )}
+              </div>
+            </div>
+            {/* Right */}
+            <div className="flex flex-col gap-2 items-end">
+              {/* Arrival time */}
+              <div className="flex">
+                <p>{segment.arrivalTime.split("T")[0]} / </p>
+                <p>{segment.arrivalTime.split("T")[1]}</p>
+              </div>
+              <div className="flex flex-col text-sm items-end text-wrap max-w-50 text-right">
+                <p>
+                  {dictionary.airports[segment.arrivalAirport]?.name} (
+                  {segment.arrivalAirport})
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* Airline and Operating */}
+          <div className="flex gap-2">
+            <div className="flex text-xs gap-2 items-start">
+              <div className="flex items-center">
+                <p className="font-bold">Airline: </p>
+                <p> {segment.airlineInfo.name}</p>
+                <p>({segment.airlineInfo.code})</p>
+              </div>
+              {segment.operating != segment.airlineInfo.code && (
+                <>
+                  <p>/</p>
+                  <div className="flex items-center">
+                    <p className="font-bold">Operating: </p>
+                    <p> {dictionary.carriers[segment.operating]}</p>
+                    <p>({segment.operating})</p>
+                  </div>
+                </>
+              )}
+              <div className="text-xs font-light italic flex flex-col justify-between">
+                <p>
+                  Operated by {segment.operating} /{" "}
+                  {dictionary.aircraft[segment.aircraft.code].valueOf()}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Details */}
+        <div className="flex h-full min-w-1/5 max-w-1/5 gap-2 text-wrap">
+          {/* Travel details */}
+          <div className="flex flex-col gap-2 w-full text-sm p-3 text-wrap">
+            {/* Cabin and class */}
+            <div className="flex gap-2 text-wrap w-full flex-col">
+              <p>Cabin:</p>
+              <p>{fareDetails?.cabin}</p>
+            </div>
+            <div className="flex gap-2 text-wrap">
+              <p>Class:</p>
+              <p>{fareDetails?.class}</p>
+            </div>
+            <Button
+              variant={"secondary"}
+              onClick={() => {
+                if (fareDetails) {
+                  setFareDetailsValue(fareDetails);
+                }
+              }}
+            >
+              Amenities
+            </Button>
+          </div>
         </div>
       </div>
     </div>

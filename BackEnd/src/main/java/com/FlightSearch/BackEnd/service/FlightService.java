@@ -1,6 +1,5 @@
 package com.FlightSearch.BackEnd.service;
 
-
 import com.FlightSearch.BackEnd.data.model.Address;
 import com.FlightSearch.BackEnd.data.model.AirportData;
 import com.FlightSearch.BackEnd.data.model.FlightOfferDTO.AirlineInfo;
@@ -23,6 +22,7 @@ import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
 import com.FlightSearch.BackEnd.presentation.dto.OfferDTO;
 import com.FlightSearch.BackEnd.service.ApiClient.FlightApiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -34,19 +34,33 @@ import java.util.stream.Collectors;
 @Service
 public class FlightService {
 
+
     private final FlightApiService flightApiService;
+    private final FlightApiService NinjaApiService;
     private final Map<String,AirportData> dataCache = new ConcurrentHashMap<>();
+    private OfferDTO offerCache = new OfferDTO();
 
     @Autowired
-    public FlightService(FlightApiService flightApiService) {
+    public FlightService(
+            @Qualifier("amadeousFlightApiServiceImpl")FlightApiService flightApiService,
+            @Qualifier("ninjaServiceImp")FlightApiService flightApiService2)
+    {
         this.flightApiService = flightApiService;
+        this.NinjaApiService = flightApiService2;
     }
 
     //Search airport matching keyword
     public List<AirportListDTO> searchAirport(String keyword) {
         AirportResponse apiResponse = flightApiService.airportSearch(keyword);
-        if(apiResponse.getData() != null){
+        if(apiResponse.getData() != null && !apiResponse.getData().isEmpty()){
             return apiResponse.getData().stream()
+                    .map(this::convertToAirportListDTO)
+                    .toList();
+        }
+        AirportResponse backResponse = NinjaApiService.airportSearch(keyword);
+        if(backResponse.getData() != null && !backResponse.getData().isEmpty()){
+            System.out.println("using Ninja Api");
+            return backResponse.getData().stream()
                     .map(this::convertToAirportListDTO)
                     .toList();
         }
@@ -60,12 +74,14 @@ public class FlightService {
         Address airportAddress = airportData.getAddress();
         dto.setValue(airportData.getIataCode());
         dto.setLabel(String.format("%s (%s,%s)",airportData.getName(),airportAddress.getCountryName(),airportAddress.getCityName()));
+        System.out.println(dto);
         return dto;
     }
 
     //Search flight
     public OfferDTO searchFlight(FlightSearchDTO searchDetails){
         FlightResponse apiResponse = this.flightApiService.flightOfferSearch(searchDetails);
+        System.out.println(apiResponse);
         OfferDictionary dictionary = apiResponse.getDictionaries();
         List<FlightOfferDTO> flightOffers = List.of();
         if(apiResponse.getData() != null){
@@ -73,9 +89,57 @@ public class FlightService {
                     .map(flightOffer -> convertToFlightOfferDTO(flightOffer,dictionary))
                     .toList();
         }
-        return populateOfferDTO(flightOffers,dictionary);
+
+
+        offerCache = populateOfferDTO(flightOffers,dictionary);
+        System.out.println(offerCache);
+        return offerCache;
     }
 
+    //Filter flight
+    public OfferDTO filterFlights(String filter, String order){
+        List<FlightOfferDTO> offers = offerCache.getOffers();
+        List<FlightOfferDTO> flightOffers = new ArrayList<>(offers);
+        System.out.println("Filtering results" + filter + order);
+        switch (filter){
+            case "price":
+                Comparator<FlightOfferDTO> priceComparator = Comparator.comparing(offer -> Float.parseFloat(offer.getPrice().getGrandTotal()));
+                if(order.equalsIgnoreCase("desc")){
+                    flightOffers.sort(priceComparator.reversed());
+                }else{
+                    flightOffers.sort(priceComparator);
+                    System.out.println("filtered by price");
+                }
+                break;
+            case "date":
+                Comparator<FlightOfferDTO> durationComparator = Comparator.comparing(offer -> {
+                    String totalTime = offer.getGoingFlight().getTotalTime().substring(2);
+                    System.out.println(offer.getGoingFlight().getTotalTime());
+                    System.out.println(totalTime);
+                    int indexOfH = totalTime.indexOf("H");
+                    int indexOfM = totalTime.indexOf("M");
+
+                    int hours = Integer.parseInt(totalTime.substring(0,indexOfH));
+                    System.out.println(hours);
+                    int minutes = Integer.parseInt(totalTime.substring(indexOfH+1,indexOfM));
+                    System.out.println(minutes);
+                    System.out.println((minutes + hours*60));
+                    return  (minutes + (hours*60));
+                });
+
+                if(order.equalsIgnoreCase("desc")){
+                    flightOffers.sort(durationComparator.reversed());
+                }else{
+                    flightOffers.sort(durationComparator);
+                }
+                break;
+            default:
+                flightOffers = offerCache.getOffers();
+        }
+        System.out.println(flightOffers);
+        return new OfferDTO(flightOffers,offerCache.getDictionaryDTO());
+
+    }
     //Convert Flight offer to DTO
     private FlightOfferDTO convertToFlightOfferDTO(FlightOffer flightOffer, OfferDictionary dictionary){
         Itinerary goingItinerary = flightOffer.getItineraries().getFirst();
@@ -164,7 +228,18 @@ public class FlightService {
             return dataCache.get(iataCode);
         }
         List<AirportData> airportData = flightApiService.airportSearch(location.getCityCode()).getData();
-        return airportData.stream().filter(airportData1 -> airportData1.getIataCode().equals(iataCode)).findFirst().orElse(new AirportData(iataCode));
+
+        List<AirportData> backUp = NinjaApiService.airportSearch(iataCode).getData();
+
+        if(airportData.isEmpty() && !backUp.isEmpty()){
+            AirportData res = backUp.stream().filter(airport -> airport.getIataCode().equals(iataCode)).findFirst().orElse(new AirportData(iataCode));
+            dataCache.put(iataCode,res);
+            return res;
+        }
+
+        AirportData result =  airportData.stream().filter(airportData1 -> airportData1.getIataCode().equals(iataCode)).findFirst().orElse(new AirportData(iataCode));
+        dataCache.put(iataCode,result);
+        return result;
     }
 
     //Get list of all flight stops with details
@@ -176,11 +251,16 @@ public class FlightService {
                         Segment prevSeg = segmentList.get(current-1);
                         return convertToFlightStop(prevSeg.getArrival().getAt(),segment,dictionary);
                     }else{
-                        return new FlightStops(segment.getId(),segment.getArrival().getAt(),segment.getDeparture().getAt(),
+                        FlightStops res = new FlightStops(segment.getId(),segment.getArrival().getAt(),segment.getDeparture().getAt(),
                                 new AirlineInfo(dictionary.getCarriers().get(segment.getCarrierCode()),segment.getCarrierCode()),
                                 segment.getDeparture().getIataCode(),segment.getDeparture().getIataCode(),
                                 segment.getArrival().getIataCode(),segment.getAircraft(),
-                                segment.getDuration());
+                                segment.getDuration(),segment.getNumber(),
+                                segment.getCarrierCode());
+                        if(segment.getStops() != null){
+                            res.setStops(segment.getStops());
+                        }
+                        return res;
                     }
                 })
                 .collect(Collectors.toList());
@@ -204,9 +284,15 @@ public class FlightService {
         AirlineInfo airlineInfo = new AirlineInfo(dictionary.getCarriers().get(segment.getCarrierCode()), segment.getCarrierCode());
         String airportCode = segment.getDeparture().getIataCode();
 
-        return  new FlightStops(segment.getId(),waitTimeFormatted,segment.getArrival().getAt(),
+        FlightStops result =   new FlightStops(segment.getId(),segment.getArrival().getAt(),
                 segment.getDeparture().getAt(),airlineInfo,airportCode,segment.getDeparture().getIataCode(),
-                segment.getArrival().getIataCode(),segment.getAircraft(),segment.getDuration());
+                segment.getArrival().getIataCode(),segment.getAircraft(),segment.getDuration(),segment.getNumber(),
+                segment.getCarrierCode());
+        result.setWaitTime(waitTimeFormatted);
+        if(segment.getStops() != null){
+            result.setStops(segment.getStops());
+        }
+        return result;
     }
 
     private OfferDTO populateOfferDTO(List<FlightOfferDTO> flightOfferDTOList, OfferDictionary offerDictionary) {

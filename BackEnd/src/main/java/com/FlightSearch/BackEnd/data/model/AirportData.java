@@ -1,5 +1,6 @@
 package com.FlightSearch.BackEnd.data.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Data

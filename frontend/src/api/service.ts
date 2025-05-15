@@ -24,3 +24,12 @@ export const getAirports = async (params: string) => {
   const data: SelectOption[] = await response.json();
   return data;
 };
+
+export const sortFlights = async (orderBy: string, orderDirection: string) => {
+  const url = new URL(flightSearchUrl + "/sort-Flights");
+  url.searchParams.set("filter", orderBy);
+  url.searchParams.set("order", orderDirection);
+  const response = await fetch(url);
+  const data: FlightOffer[] = await response.json();
+  return data;
+};

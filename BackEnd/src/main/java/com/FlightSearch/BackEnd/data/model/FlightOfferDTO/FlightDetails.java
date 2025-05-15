@@ -4,6 +4,7 @@ import com.FlightSearch.BackEnd.data.model.AirportData;
 import com.FlightSearch.BackEnd.data.model.flightOfferModels.Price;
 import com.FlightSearch.BackEnd.data.model.flightOfferModels.itinerary.Aircraft;
 import com.FlightSearch.BackEnd.data.model.flightOfferModels.travelerPricing.TravelerPricings;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import reactor.core.publisher.Mono;
 

@@ -43,4 +43,11 @@ public class FlightSearchController {
         }
         return ResponseEntity.ok(this.flightService.searchFlight(dto));
     }
+
+    @GetMapping("/sort-Flights")
+    public ResponseEntity<OfferDTO> filterFlights(@RequestParam(required = false ) String filter,
+                                                  @RequestParam(required = false, defaultValue = "asc") String order)
+    {
+        return ResponseEntity.ok(this.flightService.filterFlights(filter,order));
+    }
 }
