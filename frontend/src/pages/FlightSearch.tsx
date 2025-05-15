@@ -25,6 +25,7 @@ const FlightSearchPage = () => {
     handleSubmit,
     control,
     formState: { errors },
+    getValues,
   } = useForm<FlightSearch>();
 
   // Debounced search function
@@ -146,7 +147,9 @@ const FlightSearchPage = () => {
           </div>
           <div className="h-5 w-3/4 flex justify-center">
             {errors.originLocationCode && (
-              <p className="text-red-500 text-sm">This field is required</p>
+              <p className="text-red-500 text-sm">
+                {errors.originLocationCode.message}
+              </p>
             )}
           </div>
         </div>
@@ -186,7 +189,9 @@ const FlightSearchPage = () => {
           </div>
           <div className="h-5 w-3/4 flex justify-center">
             {errors.destinationLocationCode && (
-              <p className="text-red-500 text-sm">This field is required</p>
+              <p className="text-red-500 text-sm">
+                {errors.destinationLocationCode.message}
+              </p>
             )}
           </div>
         </div>
@@ -196,11 +201,28 @@ const FlightSearchPage = () => {
           label="Departure date"
           id="date"
           type="date"
-          {...register("departureDate", { required: true })}
+          {...register("departureDate", {
+            required: true,
+            validate: {
+              departureDate: (value) => {
+                const selectedDate = new Date(value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Set time components to 0
+                selectedDate.setHours(0, 0, 0, 0);
+
+                return (
+                  selectedDate >= today ||
+                  "Departure date cannot be before today"
+                );
+              },
+            },
+          })}
         />
         <div className="h-5 w-3/4 flex justify-center">
           {errors.departureDate && (
-            <p className="text-red-500 text-sm">This field is required</p>
+            <p className="text-red-500 text-sm">
+              {errors.departureDate.message}
+            </p>
           )}
         </div>
 
@@ -209,11 +231,23 @@ const FlightSearchPage = () => {
           label="Return date"
           id="returnDate"
           type="date"
-          {...register("returnDate")}
+          {...register("returnDate", {
+            required: false,
+            validate: {
+              returnDate: (value) => {
+                const departureDate = getValues("departureDate"); // Get departure date value
+                if (!value) return true; // If no departure date, return date is not required
+                return (
+                  new Date(value) >= new Date(departureDate) ||
+                  "Return date cannot be before departure date"
+                );
+              },
+            },
+          })}
         />
         <div className="h-5 w-3/4 flex justify-center">
           {errors.returnDate && (
-            <p className="text-red-500 text-sm">This field is required</p>
+            <p className="text-red-500 text-sm">{errors.returnDate.message}</p>
           )}
         </div>
 
@@ -227,7 +261,7 @@ const FlightSearchPage = () => {
         />
         <div className="h-5 w-3/4 flex justify-center">
           {errors.adults && (
-            <p className="text-red-500 text-sm">This field is required</p>
+            <p className="text-red-500 text-sm">{errors.adults.message}</p>
           )}
         </div>
 
@@ -241,7 +275,9 @@ const FlightSearchPage = () => {
         />
         <div className="h-5 w-3/4 flex justify-center">
           {errors.currencyCode && (
-            <p className="text-red-500 text-sm">This field is required</p>
+            <p className="text-red-500 text-sm">
+              {errors.currencyCode.message}
+            </p>
           )}
         </div>
 

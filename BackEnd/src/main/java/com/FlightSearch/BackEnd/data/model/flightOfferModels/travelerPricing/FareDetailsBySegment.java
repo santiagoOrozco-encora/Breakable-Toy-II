@@ -1,5 +1,6 @@
 package com.FlightSearch.BackEnd.data.model.flightOfferModels.travelerPricing;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
@@ -8,7 +9,8 @@ import java.util.List;
 public class FareDetailsBySegment {
     private String segmentId;
     private String cabin;
-    private String classF;
+    @JsonProperty(value = "class")
+    private String clase;
     private List<Amenities> amenities;
     private IncludedCheckedBags includedCheckedBags;
     private IncludedCabinBags includedCabinBags;
