@@ -10,6 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlightOffer {
+    private String id;
     private List<Itinerary> itineraries;
     private Price price;
     private List<String> validatingAirlineCodes;

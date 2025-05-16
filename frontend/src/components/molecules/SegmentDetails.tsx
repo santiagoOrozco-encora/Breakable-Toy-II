@@ -14,10 +14,13 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({
   fareDetails,
 }) => {
   const [showAmenities, setShowAmenities] = useState(false);
+
   return (
     <div className="flex gap-2 items-center flex-col w-full max-h-fit">
       {/* Wait time */}
-      {segment.waitTime !== null ? (
+      {segment.waitTime !== null &&
+      segment.waitTime !== "" &&
+      segment.waitTime !== "0:00:00" ? (
         <div className="w-full flex flex-col justify-center items-center text-center rounded bg-amber-100 shadow-md hover:shadow-lg transition-shadow">
           <p className="text-gray-500">{segment.waitTime} hrs wait</p>
         </div>
@@ -87,22 +90,22 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({
                 <p> {segment.airlineInfo.name}</p>
                 <p>({segment.airlineInfo.code})</p>
               </div>
-              {segment.operating != segment.airlineInfo.code && (
+              {segment.carrierCode != segment.airlineInfo.code && (
                 <>
                   <p>/</p>
                   <div className="flex items-center">
                     <p className="font-bold">Operating: </p>
-                    <p> {dictionary.carriers[segment.operating]}</p>
+                    <p> {dictionary.carriers[segment.carrierCode]}</p>
                     <p>({segment.operating})</p>
                   </div>
                 </>
               )}
-              <div className="text-xs font-light italic flex flex-col justify-between">
+              {/* <div className="text-xs font-light italic flex flex-col justify-between">
                 <p>
                   Operated by {segment.operating} /{" "}
                   {dictionary.aircraft[segment.aircraft.code].valueOf()}
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
           {/* Amenities */}

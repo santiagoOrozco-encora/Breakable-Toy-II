@@ -27,6 +27,7 @@ export type SelectOption = {
 export type FlightOffer = {
   offers: Offer[];
   dictionaryDTO: Dictionary;
+  size: number;
 };
 
 export type Dictionary = {
@@ -57,6 +58,7 @@ export type Offer = {
   returningFlight: Flight;
   price: Price;
   travelerPricings: TravelPricing[];
+  validatedAirlineCode: string;
 };
 
 export type Price = {
@@ -126,6 +128,7 @@ export type Segment = {
   arrivalTime: string;
   aircraft: AircraftInfo;
   operating: string;
+  carrierCode: string;
   stops: Stop[];
 };
 

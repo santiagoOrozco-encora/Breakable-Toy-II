@@ -88,7 +88,9 @@ const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
         </div>
 
         {/* Airline */}
-        <div className="text-xs font-light italic">{`(${offer[type].airline.code})${offer[type].airline.name}`}</div>
+        <div className="text-xs font-light italic">{`(${
+          offer.validatedAirlineCode
+        })${dictionary.carriers[offer.validatedAirlineCode]}`}</div>
       </div>
     );
   };

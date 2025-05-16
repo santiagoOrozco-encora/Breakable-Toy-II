@@ -37,6 +37,7 @@ public class FlightService {
 
     private final FlightApiService flightApiService;
     private final FlightApiService NinjaApiService;
+    private final int pageLimit =10;
     private final Map<String,AirportData> dataCache = new ConcurrentHashMap<>();
     private final HashMap<FlightSearchDTO,OfferDTO> offerCache = new HashMap<>();
 
@@ -59,7 +60,6 @@ public class FlightService {
         }
         AirportResponse backResponse = NinjaApiService.airportSearch(keyword);
         if(backResponse.getData() != null && !backResponse.getData().isEmpty()){
-            System.out.println("using Ninja Api");
             List<AirportListDTO> res = backResponse.getData().stream()
                     .map(this::convertToAirportListDTO)
                     .toList();
@@ -85,8 +85,14 @@ public class FlightService {
     //Search flight
     public OfferDTO searchFlight(FlightSearchDTO searchDetails){
         if(offerCache.containsKey(searchDetails)){
-            System.out.println("Cache used");
-            return offerCache.get(searchDetails);
+            OfferDTO cache = offerCache.get(searchDetails);
+            if(cache.getOffers() != null){
+                if(cache.getOffers().size()<pageLimit){
+                    return new OfferDTO(cache.getSize(),cache.getOffers(),cache.getDictionaryDTO());
+                }
+                return new OfferDTO(cache.getSize(),cache.getOffers().subList(0, pageLimit),cache.getDictionaryDTO());
+            }
+            return new OfferDTO();
         }
         FlightResponse apiResponse = this.flightApiService.flightOfferSearch(searchDetails);
         OfferDictionary dictionary = apiResponse.getDictionaries();
@@ -96,20 +102,25 @@ public class FlightService {
                     .map(flightOffer -> convertToFlightOfferDTO(flightOffer,dictionary))
                     .toList();
         }
-
-        OfferDTO newOfferDto = populateOfferDTO(flightOffers,dictionary);
         offerCache.clear();
-        offerCache.put(searchDetails,newOfferDto);
+        OfferDTO newOfferDto = populateOfferDTO(flightOffers,dictionary);
+        if(newOfferDto.getOffers() != null){
+            offerCache.put(searchDetails,newOfferDto);
+            if(newOfferDto.getOffers().size()< pageLimit){
+                return new OfferDTO(newOfferDto.getSize(), newOfferDto.getOffers(),newOfferDto.getDictionaryDTO());
+            }
+            return new OfferDTO(newOfferDto.getSize(), newOfferDto.getOffers().subList(0, pageLimit),newOfferDto.getDictionaryDTO());
+        }
+        return new OfferDTO();
 
-        return newOfferDto;
     }
 
     //Filter flight
-    public OfferDTO filterFlights(String filter, String order){
+    public OfferDTO filterFlights(String filter, String order,int page){
+
         if(!offerCache.isEmpty()) {
             OfferDTO offers = offerCache.values().stream().toList().getFirst();
             List<FlightOfferDTO> flightOffers = new ArrayList<>(offers.getOffers());
-
             switch (filter) {
                 case "price":
                     Comparator<FlightOfferDTO> priceComparator = Comparator.comparing(offer -> Float.parseFloat(offer.getPrice().getGrandTotal()));
@@ -156,10 +167,21 @@ public class FlightService {
                     }
                     break;
                 default:
+                    Comparator<FlightOfferDTO> normalComparator = Comparator.comparing(offer-> Integer.parseInt(offer.getId()));
+                    if(order.equalsIgnoreCase("desc")){
+                        flightOffers.sort(normalComparator.reversed());
+                    }else{
+                        flightOffers.sort(normalComparator);
+                    }
 
             }
+            int top = page* pageLimit;
+            int bottom = top- pageLimit;
+            if(top > flightOffers.size()){
+                return new OfferDTO(flightOffers.size(),flightOffers.subList(bottom,flightOffers.size()),offers.getDictionaryDTO());
+            }
+            return new OfferDTO(flightOffers.size(),flightOffers.subList(bottom,top),offers.getDictionaryDTO());
 
-            return new OfferDTO(flightOffers,offers.getDictionaryDTO());
         }
         return new OfferDTO();
     }
@@ -209,14 +231,17 @@ public class FlightService {
             FlightDetails returningFlightDetails = getFlightDetails(comingItinerary,dictionary);
 
             return new FlightOfferDTO(
-                            goingFlightDetails,
-                            offerPrice,
-                            travelerPricings,
-                            returningFlightDetails
-                    );
+                    flightOffer.getId(),
+                    goingFlightDetails,
+                    offerPrice,
+                    travelerPricings,
+                    flightOffer.getValidatingAirlineCodes().getFirst(),
+
+                    returningFlightDetails
+            );
 
         }else{
-            return new FlightOfferDTO(goingFlightDetails,offerPrice,travelerPricings);
+            return new FlightOfferDTO(flightOffer.getId(), goingFlightDetails,offerPrice,travelerPricings,flightOffer.getValidatingAirlineCodes().getFirst());
         }
     }
 
@@ -240,7 +265,9 @@ public class FlightService {
             flightDetail arrival = flightDetails.getArrival();
             String finalDayTime = arrival.getAt();
             String finalAirport = arrival.getIataCode();
-
+            FlightStops stop = convertToFlightStop(initialDayTime,flightDetails,dictionary);
+            List<FlightStops>  stops = new ArrayList<>();
+            stops.add(stop);
             return new FlightDetails(
                     initialDayTime,
                     initialAirport,
@@ -248,7 +275,7 @@ public class FlightService {
                     finalAirport,
                     airlineInfo,
                     itinerary.getDuration(),
-                    List.of(),
+                    stops,
                     itinerary.getSegments().getFirst().getAircraft()
             );
         }
@@ -276,23 +303,33 @@ public class FlightService {
 
     //Get airport information filtering with IATA code
     private AirportData getAirportData(Location location, String iataCode) {
+        System.out.println("Searching: " +iataCode);
         if(dataCache.containsKey(iataCode)){
             System.out.println("From the cache");
             return dataCache.get(iataCode);
         }
         List<AirportData> airportData = flightApiService.airportSearch(location.getCityCode()).getData();
 
-
-        List<AirportData> backUp = NinjaApiService.airportSearch(iataCode).getData();
-        if(airportData.isEmpty() && !backUp.isEmpty()){
-            AirportData res = backUp.stream().filter(airport -> airport.getIataCode().equals(iataCode)).findFirst().orElse(new AirportData(iataCode));
-            dataCache.put(iataCode,res);
-            return res;
+        if(airportData.isEmpty()){
+            return useNinjaApi(iataCode);
         }
 
-        AirportData result =  airportData.stream().filter(airportData1 -> airportData1.getIataCode().equals(iataCode)).findFirst().orElse(new AirportData(iataCode));
+        AirportData result =  airportData.stream().filter(airportData1 -> airportData1.getIataCode().equals(iataCode)).findFirst().orElse(useNinjaApi(iataCode));
         dataCache.put(iataCode,result);
+
         return result;
+    }
+
+    private AirportData useNinjaApi(String iataCode){
+        List<AirportData> backUp = NinjaApiService.airportSearch(iataCode).getData();
+        if(backUp.isEmpty()){
+            return new AirportData();
+        }
+        AirportData res = backUp.stream().filter(airport -> airport.getIataCode().equals(iataCode)).findFirst().orElse(new AirportData(iataCode));
+
+        System.out.println("From ninja");
+        dataCache.put(iataCode,res);
+        return res;
     }
 
     //Get list of all flight stops with details
@@ -304,14 +341,18 @@ public class FlightService {
                         Segment prevSeg = segmentList.get(current-1);
                         return convertToFlightStop(prevSeg.getArrival().getAt(),segment,dictionary);
                     }else{
-                        FlightStops res = new FlightStops(segment.getId(),segment.getArrival().getAt(),segment.getDeparture().getAt(),
+                        FlightStops res = new FlightStops(segment.getId(),"",segment.getArrival().getAt(),segment.getDeparture().getAt(),
                                 new AirlineInfo(dictionary.getCarriers().get(segment.getCarrierCode()),segment.getCarrierCode()),
                                 segment.getDeparture().getIataCode(),segment.getDeparture().getIataCode(),
                                 segment.getArrival().getIataCode(),segment.getAircraft(),
                                 segment.getDuration(),segment.getNumber(),
-                                segment.getCarrierCode());
+                                segment.getCarrierCode()
+                                );
                         if(segment.getStops() != null){
                             res.setStops(segment.getStops());
+                        }
+                        if(segment.getOperating().getCarrierCode() != null){
+                            res.setOperating(segment.getOperating().getCarrierCode());
                         }
                         return res;
                     }
@@ -325,6 +366,7 @@ public class FlightService {
         LocalDateTime departureTime = LocalDateTime.parse(segment.getDeparture().getAt());
         Duration waitTime = Duration.between(arrivalTime,departureTime);
 
+        System.out.println(segment);
         long seconds = waitTime.getSeconds();
         long absSeconds = Math.abs(seconds);
         String waitTimeFormatted = String.format(
@@ -337,10 +379,14 @@ public class FlightService {
         AirlineInfo airlineInfo = new AirlineInfo(dictionary.getCarriers().get(segment.getCarrierCode()), segment.getCarrierCode());
         String airportCode = segment.getDeparture().getIataCode();
 
-        FlightStops result =   new FlightStops(segment.getId(),segment.getArrival().getAt(),
+        FlightStops result =   new FlightStops(segment.getId(),"",segment.getArrival().getAt(),
                 segment.getDeparture().getAt(),airlineInfo,airportCode,segment.getDeparture().getIataCode(),
                 segment.getArrival().getIataCode(),segment.getAircraft(),segment.getDuration(),segment.getNumber(),
                 segment.getCarrierCode());
+
+        if(segment.getOperating() != null){
+            result.setOperating(segment.getOperating().getCarrierCode());
+        }
         result.setWaitTime(waitTimeFormatted);
         if(segment.getStops() != null){
             result.setStops(segment.getStops());
@@ -362,7 +408,7 @@ public class FlightService {
                     offerDictionary.getCurrencies(),
                     offerDictionary.getCarriers()
             );
-            return new OfferDTO(flightOfferDTOList, dictionaryDTO);
+            return new OfferDTO(flightOfferDTOList.size(),flightOfferDTOList, dictionaryDTO);
         }
         return new OfferDTO();
     }

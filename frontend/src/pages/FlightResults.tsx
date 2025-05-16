@@ -11,9 +11,12 @@ const FlightResults = () => {
   const [orderBy, setOrderBy] = useState<string>("");
   const [filterBy, setFilterBy] = useState<string[]>([]);
   const [orderDirection, setOrderDirection] = useState<string>("asc");
+  const [page, setPage] = useState(1);
   const [flights, setFlights] = useState(location.state?.flights);
   // flights is what we passed as { state: { flights } }
   const dictionary = flights?.dictionaryDTO || {};
+  const flightsSize = flights?.size || 0;
+  const flightsPerPage = 10;
 
   useEffect(() => {
     if (filterBy.includes("price") && filterBy.includes("duration")) {
@@ -28,8 +31,8 @@ const FlightResults = () => {
   }, [filterBy]);
 
   useEffect(() => {
-    filterFlights(orderBy, orderDirection);
-  }, [orderBy, orderDirection]);
+    filterFlights(orderBy, orderDirection, page);
+  }, [page, orderBy, orderDirection]);
 
   const toggleFilters = (filter: string) => {
     setFilterBy((prev) => {
@@ -47,12 +50,12 @@ const FlightResults = () => {
     setOrderDirection("asc");
   };
 
-  const filterFlights = async (filter: string, direction: string) => {
-    if (filter === "") {
-      setFlights(location.state?.flights);
-      return;
-    }
-    const sortedFlightsResult = await sortFlights(filter, direction);
+  const filterFlights = async (
+    filter: string,
+    direction: string,
+    page: number
+  ) => {
+    const sortedFlightsResult = await sortFlights(filter, direction, page);
     setFlights(sortedFlightsResult);
   };
 
@@ -82,46 +85,75 @@ const FlightResults = () => {
       </div>
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-bold text-start">Filters</h1>
-        <div className="flex gap-5 items-center text-center justify-start">
-          {/* Order by */}
+        <div className="flex gap-5 items-center text-center justify-between">
           <div className="flex gap-5 p-2">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setOrderDirection(orderDirection === "asc" ? "desc" : "asc");
-              }}
-            >
-              {orderDirection === "asc" ? "↑" : "↓"}
-            </Button>
-          </div>
-          {/* Filters */}
-          <div className="flex  gap-5 p-2">
-            <Button
-              variant={filterBy.includes("price") ? "primary" : "secondary"}
-              onClick={() => {
-                toggleFilters("price");
-              }}
-            >
-              Price
-            </Button>
-            <Button
-              variant={filterBy.includes("duration") ? "primary" : "secondary"}
-              onClick={() => {
-                toggleFilters("duration");
-              }}
-            >
-              Duration
-            </Button>
-            {filterBy.length > 0 ? (
+            {/* Order by */}
+            <div className="flex gap-5 p-2">
               <Button
                 variant="secondary"
                 onClick={() => {
-                  clearFilters();
+                  setOrderDirection(orderDirection === "asc" ? "desc" : "asc");
                 }}
               >
-                ✕
+                {orderDirection === "asc" ? "↑" : "↓"}
               </Button>
-            ) : null}
+            </div>
+            {/* Filters */}
+            <div className="flex  gap-5 p-2">
+              <Button
+                variant={filterBy.includes("price") ? "primary" : "secondary"}
+                onClick={() => {
+                  toggleFilters("price");
+                }}
+              >
+                Price
+              </Button>
+              <Button
+                variant={
+                  filterBy.includes("duration") ? "primary" : "secondary"
+                }
+                onClick={() => {
+                  toggleFilters("duration");
+                }}
+              >
+                Duration
+              </Button>
+              {filterBy.length > 0 ? (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    clearFilters();
+                  }}
+                >
+                  ✕
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          {/* Pagination */}
+          <div className="flex flex-col justify-center">
+            <div className="flex gap-2 items-center justify-between px-3 py-2 text-md text-gray-500">
+              <p>{page}</p>
+              <p>of</p>
+              <p>{Math.ceil(flightsSize / flightsPerPage)}</p>
+            </div>
+            <div className="flex gap-2 items-center justify-between">
+              <Button
+                variant="secondary"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                {"prev"}
+              </Button>
+
+              <Button
+                variant="secondary"
+                disabled={page >= Math.ceil(flightsSize / flightsPerPage)}
+                onClick={() => setPage(page + 1)}
+              >
+                {"next"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
