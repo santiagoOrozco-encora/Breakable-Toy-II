@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OfferDTO {
+    private int size;
     private List<FlightOfferDTO> offers;
     private DictionaryDTO dictionaryDTO;
 }

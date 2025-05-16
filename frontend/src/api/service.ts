@@ -25,10 +25,15 @@ export const getAirports = async (params: string) => {
   return data;
 };
 
-export const sortFlights = async (orderBy: string, orderDirection: string) => {
+export const sortFlights = async (
+  orderBy: string,
+  orderDirection: string,
+  page: number
+) => {
   const url = new URL(flightSearchUrl + "/sort-Flights");
   url.searchParams.set("filter", orderBy);
   url.searchParams.set("order", orderDirection);
+  url.searchParams.set("page", page.toString());
   const response = await fetch(url);
   const data: FlightOffer[] = await response.json();
   return data;

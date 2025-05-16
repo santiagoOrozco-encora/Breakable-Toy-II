@@ -15,6 +15,7 @@ import java.util.List;
 public class FlightStops {
     @NonNull
     private String id;
+    @NonNull
     private String waitTime;
     @NonNull
     private String arrivalTime;
@@ -35,7 +36,7 @@ public class FlightStops {
     @NonNull
     private String number;
     @NonNull
-    private String operating;
-
+    private String carrierCode;
     private List<Stops> stops;
+    private String operating;
 }

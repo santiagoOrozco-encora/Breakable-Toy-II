@@ -16,11 +16,15 @@ import java.util.List;
 @AllArgsConstructor
 public class FlightOfferDTO {
     @NonNull
-   private FlightDetails goingFlight;
+    private String id;
+    @NonNull
+    private FlightDetails goingFlight;
     @NonNull
     private Price price;
     @NonNull
     private List<TravelerPricings> travelerPricings;
+    @NonNull
+    private String validatedAirlineCode;
 
     private FlightDetails returningFlight;
 }

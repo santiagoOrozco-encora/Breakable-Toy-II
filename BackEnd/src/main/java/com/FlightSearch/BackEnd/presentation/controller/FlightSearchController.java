@@ -46,8 +46,9 @@ public class FlightSearchController {
 
     @GetMapping("/sort-Flights")
     public ResponseEntity<OfferDTO> filterFlights(@RequestParam(required = false ) String filter,
+                                                  @RequestParam() String page,
                                                   @RequestParam(required = false, defaultValue = "asc") String order)
     {
-        return ResponseEntity.ok(this.flightService.filterFlights(filter,order));
+        return ResponseEntity.ok(this.flightService.filterFlights(filter,order,Integer.parseInt(page)));
     }
 }

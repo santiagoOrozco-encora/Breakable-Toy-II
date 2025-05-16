@@ -3,6 +3,7 @@ package com.FlightSearch.BackEnd.service.ApiClient;
 import com.FlightSearch.BackEnd.data.model.apiRespose.AirportResponse;
 import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -23,8 +24,10 @@ import java.util.Map;
 public class AmadeousFlightApiServiceImpl implements FlightApiService{
 
     private final WebClient amadeousClient;
-    private String apiKey = "otAGkRIw6ospLmhuUCIqbNGXMwev5ENu";
-    private String apiSecret ="jPjD6cUDNy6KsktE";
+    @Value("${amadeous.key}")
+    private String apiKey;
+    @Value("${amadeous.secret}")
+    private String apiSecret;
     private volatile String authToken;
 
     public AmadeousFlightApiServiceImpl(WebClient.Builder webClientBuilder) {
@@ -98,8 +101,8 @@ public class AmadeousFlightApiServiceImpl implements FlightApiService{
                 .queryParam("departureDate", details.getDepartureDate())
                 .queryParam("adults", details.getPassengers())
                 .queryParam("nonStop", details.getNonStop().toString())
-                .queryParam("currencyCode", details.getCurrency())
-                .queryParam("max","20");
+                .queryParam("currencyCode", details.getCurrency());
+//                .queryParam("max","20");
 
         if (details.getReturnDate() != null && !details.getReturnDate().isEmpty()) {
             uri.queryParam("returnDate",details.getReturnDate());

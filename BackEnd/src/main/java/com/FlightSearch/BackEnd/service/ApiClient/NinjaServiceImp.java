@@ -6,6 +6,7 @@ import com.FlightSearch.BackEnd.data.model.apiRespose.AirportResponse;
 import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
 import com.FlightSearch.BackEnd.data.model.apiRespose.NinjaResponse;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,8 @@ import java.util.List;
 public class NinjaServiceImp implements FlightApiService {
 
     private final WebClient NinjaClient;
-    private final String key = "FogSifxB+7C082IhzaY19Q==3cgJ9AM5GLfk75LO";
+    @Value("${ninja.key}")
+    private String key;
 
     public NinjaServiceImp(WebClient.Builder NinjaClient){
         this.NinjaClient = NinjaClient.baseUrl("https://api.api-ninjas.com").build();
@@ -25,7 +27,6 @@ public class NinjaServiceImp implements FlightApiService {
 
     @Override
     public AirportResponse airportSearch(String keyword){
-        System.out.println(key);
         List<NinjaResponse> res = NinjaClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/v1/airports")
                         .queryParam("iata",keyword)
@@ -35,6 +36,7 @@ public class NinjaServiceImp implements FlightApiService {
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<NinjaResponse>>() {}) // Use ParameterizedTypeReference for List
                 .block();
+        System.out.println(res);
         if(res == null || res.isEmpty()){
             return new AirportResponse();
         }

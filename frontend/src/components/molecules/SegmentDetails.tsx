@@ -1,29 +1,32 @@
 import { Dictionary, Segment, FareDetailsBySegment } from "../../api/types";
 import Button from "../atoms/Button";
+import { useState } from "react";
 
 interface SegmentDetailsProps {
   segment: Segment;
   dictionary: Dictionary;
   fareDetails: FareDetailsBySegment | undefined;
-  setFareDetailsValue: (fareDetails: FareDetailsBySegment | null) => void;
 }
 
 const SegmentDetails: React.FC<SegmentDetailsProps> = ({
   segment,
   dictionary,
   fareDetails,
-  setFareDetailsValue,
 }) => {
+  const [showAmenities, setShowAmenities] = useState(false);
+
   return (
     <div className="flex gap-2 items-center flex-col w-full max-h-fit">
       {/* Wait time */}
-      {segment.waitTime !== null ? (
+      {segment.waitTime !== null &&
+      segment.waitTime !== "" &&
+      segment.waitTime !== "0:00:00" ? (
         <div className="w-full flex flex-col justify-center items-center text-center rounded bg-amber-100 shadow-md hover:shadow-lg transition-shadow">
           <p className="text-gray-500">{segment.waitTime} hrs wait</p>
         </div>
       ) : null}
 
-      <div className="flex gap-2 w-full rounded max-h-45 shadow-md hover:shadow-lg transition-shadow justify-between">
+      <div className="flex gap-2 w-full rounded max-h-fit shadow-md hover:shadow-lg transition-shadow justify-between">
         <div className="flex flex-col gap-2 w-full max-w-full min-w-2/3 p-5 justify-between">
           {/* Flight details */}
           <div className="flex gap-2 w-full justify-between">
@@ -87,24 +90,48 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({
                 <p> {segment.airlineInfo.name}</p>
                 <p>({segment.airlineInfo.code})</p>
               </div>
-              {segment.operating != segment.airlineInfo.code && (
+              {segment.carrierCode != segment.airlineInfo.code && (
                 <>
                   <p>/</p>
                   <div className="flex items-center">
                     <p className="font-bold">Operating: </p>
-                    <p> {dictionary.carriers[segment.operating]}</p>
+                    <p> {dictionary.carriers[segment.carrierCode]}</p>
                     <p>({segment.operating})</p>
                   </div>
                 </>
               )}
-              <div className="text-xs font-light italic flex flex-col justify-between">
+              {/* <div className="text-xs font-light italic flex flex-col justify-between">
                 <p>
                   Operated by {segment.operating} /{" "}
                   {dictionary.aircraft[segment.aircraft.code].valueOf()}
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
+          {/* Amenities */}
+          {showAmenities ? (
+            <div className="flex flex-col gap-2 rounded p-2 shadow-xl transition-shadow w-full">
+              <h2 className="text-left text-lg font-bold">Amenities</h2>
+              <div className="flex flex-col gap-2">
+                <p>Checked bags:{fareDetails?.includedCheckedBags.quantity}</p>
+                {fareDetails?.amenities.map((amenity, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-2 items-center justify-between"
+                  >
+                    <p className="text-wrap text-ellipsis">
+                      {amenity.description}
+                    </p>
+                    <p className="text-xs">
+                      {amenity.isChargeable ? "Chargeable" : "Not chargeable"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
         {/* Details */}
         <div className="flex h-full min-w-1/5 max-w-1/5 gap-2 text-wrap">
@@ -122,12 +149,10 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({
             <Button
               variant={"secondary"}
               onClick={() => {
-                if (fareDetails) {
-                  setFareDetailsValue(fareDetails);
-                }
+                setShowAmenities(!showAmenities);
               }}
             >
-              Amenities
+              {showAmenities ? "Hide amenities" : "Show amenities"}
             </Button>
           </div>
         </div>
