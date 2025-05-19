@@ -1,4 +1,4 @@
-package com.FlightSearch.BackEnd.data.model.flightOfferModels;
+package com.FlightSearch.BackEnd.data.model.FlightOfferModels;
 
 import lombok.*;
 

@@ -1,7 +1,7 @@
-package com.FlightSearch.BackEnd.data.model.flightOfferModels;
+package com.FlightSearch.BackEnd.data.model.FlightOfferModels;
 
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.itinerary.Itinerary;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.travelerPricing.TravelerPricings;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.itinerary.Itinerary;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.travelerPricing.TravelerPricings;
 import lombok.*;
 
 import java.util.List;

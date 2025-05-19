@@ -1,11 +1,15 @@
-package com.FlightSearch.BackEnd.data.model.flightOfferModels.travelerPricing;
+package com.FlightSearch.BackEnd.data.model.FlightOfferModels.travelerPricing;
 
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.Price;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.Price;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class TravelerPricings {
     private String travelerId;
     private Price price;

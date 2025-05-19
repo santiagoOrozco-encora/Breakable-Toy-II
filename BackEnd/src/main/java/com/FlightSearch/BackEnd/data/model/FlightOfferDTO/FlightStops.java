@@ -1,10 +1,8 @@
 package com.FlightSearch.BackEnd.data.model.FlightOfferDTO;
 
-import com.FlightSearch.BackEnd.data.model.AirportData;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.Stops;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.itinerary.Aircraft;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.Stops;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.itinerary.Aircraft;
 import lombok.*;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
