@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "isolatedModules": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "types": ["jest"]
+  },
+  "include": ["src/**/*.test.tsx"],
+  "exclude": ["node_modules", "dist", "build", "scripts", "acceptance-tests", "webpack", "jest", "src/setupProxy.js", "src/setupTests.ts"]
+}
