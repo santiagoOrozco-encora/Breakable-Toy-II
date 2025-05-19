@@ -8,14 +8,14 @@ import com.FlightSearch.BackEnd.data.model.FlightOfferDTO.FlightDetails;
 import com.FlightSearch.BackEnd.data.model.FlightOfferDTO.FlightStops;
 import com.FlightSearch.BackEnd.data.model.apiRespose.AirportResponse;
 import com.FlightSearch.BackEnd.data.model.apiRespose.FlightResponse;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.FlightOffer;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.Location;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.OfferDictionary;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.Price;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.itinerary.Itinerary;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.itinerary.Segment;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.itinerary.flightDetail;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.travelerPricing.TravelerPricings;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.FlightOffer;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.Location;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.OfferDictionary;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.Price;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.itinerary.Itinerary;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.itinerary.Segment;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.itinerary.flightDetail;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.travelerPricing.TravelerPricings;
 import com.FlightSearch.BackEnd.presentation.dto.AirportListDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightOfferDTO;
 import com.FlightSearch.BackEnd.presentation.dto.FlightSearchDTO;
@@ -39,7 +39,7 @@ public class FlightService {
     private final FlightApiService NinjaApiService;
     private final int pageLimit =10;
     private final Map<String,AirportData> dataCache = new ConcurrentHashMap<>();
-    private final HashMap<FlightSearchDTO,OfferDTO> offerCache = new HashMap<>();
+    final HashMap<FlightSearchDTO,OfferDTO> offerCache = new HashMap<>();
 
     @Autowired
     public FlightService(
@@ -97,6 +97,7 @@ public class FlightService {
         FlightResponse apiResponse = this.flightApiService.flightOfferSearch(searchDetails);
         OfferDictionary dictionary = apiResponse.getDictionaries();
         List<FlightOfferDTO> flightOffers = List.of();
+
         if(apiResponse.getData() != null){
             flightOffers = apiResponse.getData().stream()
                     .map(flightOffer -> convertToFlightOfferDTO(flightOffer,dictionary))
@@ -104,7 +105,7 @@ public class FlightService {
         }
         offerCache.clear();
         OfferDTO newOfferDto = populateOfferDTO(flightOffers,dictionary);
-        if(newOfferDto.getOffers() != null){
+        if(newOfferDto.getOffers() != null && !newOfferDto.getOffers().isEmpty()){
             offerCache.put(searchDetails,newOfferDto);
             if(newOfferDto.getOffers().size()< pageLimit){
                 return new OfferDTO(newOfferDto.getSize(), newOfferDto.getOffers(),newOfferDto.getDictionaryDTO());

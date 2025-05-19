@@ -1,11 +1,10 @@
 package com.FlightSearch.BackEnd.presentation.dto;
 
 import com.FlightSearch.BackEnd.data.model.FlightOfferDTO.FlightDetails;
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.Price;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.Price;
 
-import com.FlightSearch.BackEnd.data.model.flightOfferModels.travelerPricing.TravelerPricings;
+import com.FlightSearch.BackEnd.data.model.FlightOfferModels.travelerPricing.TravelerPricings;
 import lombok.*;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
