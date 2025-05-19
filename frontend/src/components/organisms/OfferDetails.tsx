@@ -10,11 +10,11 @@ interface OfferDetailsProps {
 
 const OfferDetails: React.FC<OfferDetailsProps> = ({ offer, dictionary }) => {
   return (
-    <div className="flex gap-3 w-full mx-auto px-4 py-8">
+    <div className="flex gap-6 w-full mx-auto px-4 py-8">
       {/* Flight details */}
-      <div className="flex justify-start w-2/3 gap-2 flex-col">
+      <div className="flex justify-start w-2/3 flex-col gap-6">
         {/* Going itinerary */}
-        <h2 className="text-start text-lg font-bold">Going itinerary</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Going itinerary</h2>
         <FlightDetailSection
           flight={offer.goingFlight}
           dictionary={dictionary}
@@ -23,7 +23,7 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({ offer, dictionary }) => {
         {/* Returning itinerary */}
         {offer.returningFlight !== null && (
           <>
-            <h2 className="text-start text-lg font-bold">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
               Returning itinerary
             </h2>
             <FlightDetailSection
@@ -35,7 +35,7 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({ offer, dictionary }) => {
         )}
       </div>
       {/* Price details */}
-      <div className="flex justify-start w-1/3 flex-col gap-2">
+      <div className="flex justify-start w-1/3 flex-col gap-6">
         <PriceSegment
           price={offer.price}
           travelerPricings={offer.travelerPricings}

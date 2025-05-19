@@ -7,16 +7,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const ButtonStyles = {
   primary:
-    "rounded-lg bg-blue-400 text-sm text-white font-medium p-2 hover:cursor-pointer hover:border-blue-500 hover:bg-transparent hover:text-blue-500 transition-all",
+    "cursor-pointer rounded-lg bg-blue-400 text-sm text-white font-medium p-2 hover:border-blue-500 hover:bg-transparent hover:text-blue-500 transition-all",
   secondary:
-    "rounded-lg bg-gray-500 text-sm text-white font-medium p-2 h-fit hover:cursor-pointer hover:border-gray-500 hover:bg-transparent hover:text-gray-500 transition-all",
+    "flex items-center justify-center cursor-pointer rounded-lg bg-gray-500 text-sm text-white font-medium p-2 h-fit hover:border-gray-500 hover:bg-transparent hover:text-gray-500 transition-all",
 };
 
-const Button: React.FC<ButtonProps> = ({
-  children,
-  variant = "primary",
-  ...props
-}) => {
+const Button: React.FC<ButtonProps> = ({ children, variant, ...props }) => {
   const buttonStyle = ButtonStyles[variant];
   return (
     <button className={`${buttonStyle} `} {...props}>

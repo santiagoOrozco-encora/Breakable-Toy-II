@@ -13,7 +13,6 @@ const FlightResults = () => {
   const [orderDirection, setOrderDirection] = useState<string>("asc");
   const [page, setPage] = useState(1);
   const [flights, setFlights] = useState(location.state?.flights);
-  // flights is what we passed as { state: { flights } }
   const dictionary = flights?.dictionaryDTO || {};
   const flightsSize = flights?.size || 0;
   const flightsPerPage = 10;
@@ -76,88 +75,155 @@ const FlightResults = () => {
 
   // render the flight offers
   return (
-    <div className="flex flex-col gap-3 mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Flight Search Results</h1>
-      <div className="flex justify-start">
+    <div className="mx-auto px-4 py-8  bg-gradient-to-b from-blue-50 to-white gap-2">
+      <h1 className="text-2xl font-bold mb-6 ">Flight Search Results</h1>
+      <div className="flex justify-start mb-6">
         <Button variant="secondary" onClick={() => navigate("/")}>
           Back to Search
         </Button>
       </div>
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold text-start">Filters</h1>
-        <div className="flex gap-5 items-center text-center justify-between">
-          <div className="flex gap-5 p-2">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-800">Filters</h2>
+        </div>
+        <div className="flex gap-6 items-center justify-between">
+          <div className="flex gap-5 p-2 items-center">
             {/* Order by */}
-            <div className="flex gap-5 p-2">
+            <div className="flex gap-4">
               <Button
                 variant="secondary"
                 onClick={() => {
                   setOrderDirection(orderDirection === "asc" ? "desc" : "asc");
                 }}
+                className="px-4 py-2 cursor-pointer"
               >
-                {orderDirection === "asc" ? "↑" : "↓"}
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d={
+                      orderDirection === "asc"
+                        ? "M5 10l7-7m0 0l7 7m-7-7v18"
+                        : "M19 14l-7 7m0 0l-7-7m7 7V7"
+                    }
+                  />
+                </svg>
+                {orderDirection === "asc" ? "ASC" : "DESC"}
               </Button>
             </div>
             {/* Filters */}
-            <div className="flex  gap-5 p-2">
-              <Button
-                variant={filterBy.includes("price") ? "primary" : "secondary"}
-                onClick={() => {
-                  toggleFilters("price");
-                }}
+            <div className="flex gap-4">
+              <button
+                onClick={() => toggleFilters("price")}
+                className={` px-4 py-2 hover:text-green-500 cursor-pointer transition-all ${
+                  filterBy.includes("price") ? "text-green-500" : ""
+                }`}
               >
-                Price
-              </Button>
-              <Button
-                variant={
-                  filterBy.includes("duration") ? "primary" : "secondary"
-                }
-                onClick={() => {
-                  toggleFilters("duration");
-                }}
-              >
-                Duration
-              </Button>
-              {filterBy.length > 0 ? (
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    clearFilters();
-                  }}
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  ✕
-                </Button>
-              ) : null}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Price
+              </button>
+              <button
+                onClick={() => toggleFilters("duration")}
+                className={`px-4 py-2 hover:text-green-500 cursor-pointer transition-all ${
+                  filterBy.includes("duration") ? "text-green-500" : ""
+                }`}
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707"
+                  />
+                </svg>
+                Duration
+              </button>
             </div>
+            {filterBy.length > 0 && (
+              <Button variant="secondary" onClick={clearFilters}>
+                Clear All
+              </Button>
+            )}
           </div>
           {/* Pagination */}
-          <div className="flex flex-col justify-center">
-            <div className="flex gap-2 items-center justify-between px-3 py-2 text-md text-gray-500">
-              <p>{page}</p>
-              <p>of</p>
-              <p>{Math.ceil(flightsSize / flightsPerPage)}</p>
+          <div className="flex flex-col items-center">
+            <div className="flex gap-4 mb-4">
+              <span className="text-gray-600">
+                Page {page} of {Math.ceil(flightsSize / flightsPerPage)}
+              </span>
             </div>
-            <div className="flex gap-2 items-center justify-between">
+            <div className="flex gap-2">
               <Button
                 variant="secondary"
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
+                className="px-4 py-2 cursor-pointer hover:border-gray-500 hover:bg-transparent hover:text-gray-500 transition-all"
               >
-                {"prev"}
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Previous
               </Button>
 
               <Button
                 variant="secondary"
                 disabled={page >= Math.ceil(flightsSize / flightsPerPage)}
                 onClick={() => setPage(page + 1)}
+                className="px-4 py-2 cursor-pointer hover:border-gray-500 hover:bg-transparent hover:text-gray-500 transition-all"
               >
-                {"next"}
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+                Next
               </Button>
             </div>
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-5">
+      <div className="space-y-6">
         {/* Flight offers */}
         {flights.offers.map((offer: Offer, index: number) => {
           return (

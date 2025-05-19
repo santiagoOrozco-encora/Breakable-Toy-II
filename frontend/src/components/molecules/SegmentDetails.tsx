@@ -1,6 +1,7 @@
 import { Dictionary, Segment, FareDetailsBySegment } from "../../api/types";
 import Button from "../atoms/Button";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface SegmentDetailsProps {
   segment: Segment;
@@ -26,7 +27,7 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({
         </div>
       ) : null}
 
-      <div className="flex gap-2 w-full rounded max-h-fit shadow-md hover:shadow-lg transition-shadow justify-between">
+      <div className="flex gap-2 w-full rounded max-h-fit shadow-md bg-white hover:shadow-lg transition-shadow justify-between">
         <div className="flex flex-col gap-2 w-full max-w-full min-w-2/3 p-5 justify-between">
           {/* Flight details */}
           <div className="flex gap-2 w-full justify-between">
@@ -109,7 +110,22 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({
             </div>
           </div>
           {/* Amenities */}
-          {showAmenities ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{
+              height: showAmenities ? "auto" : 0,
+              opacity: showAmenities ? 1 : 0,
+            }}
+            exit={{
+              height: 0,
+              opacity: 0,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: "easeInOut",
+            }}
+            className="overflow-hidden"
+          >
             <div className="flex flex-col gap-2 rounded p-2 shadow-xl transition-shadow w-full">
               <h2 className="text-left text-lg font-bold">Amenities</h2>
               <div className="flex flex-col gap-2">
@@ -129,9 +145,7 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({
                 ))}
               </div>
             </div>
-          ) : (
-            <></>
-          )}
+          </motion.div>
         </div>
         {/* Details */}
         <div className="flex h-full min-w-1/5 max-w-1/5 gap-2 text-wrap">

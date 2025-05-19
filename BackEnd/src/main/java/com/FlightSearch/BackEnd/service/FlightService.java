@@ -311,7 +311,7 @@ public class FlightService {
         }
         List<AirportData> airportData = flightApiService.airportSearch(location.getCityCode()).getData();
 
-        if(airportData.isEmpty()){
+        if(airportData == null || airportData.isEmpty()){
             return useNinjaApi(iataCode);
         }
 
@@ -323,7 +323,7 @@ public class FlightService {
 
     private AirportData useNinjaApi(String iataCode){
         List<AirportData> backUp = NinjaApiService.airportSearch(iataCode).getData();
-        if(backUp.isEmpty()){
+        if(backUp== null || backUp.isEmpty()){
             return new AirportData();
         }
         AirportData res = backUp.stream().filter(airport -> airport.getIataCode().equals(iataCode)).findFirst().orElse(new AirportData(iataCode));
@@ -367,7 +367,6 @@ public class FlightService {
         LocalDateTime departureTime = LocalDateTime.parse(segment.getDeparture().getAt());
         Duration waitTime = Duration.between(arrivalTime,departureTime);
 
-        System.out.println(segment);
         long seconds = waitTime.getSeconds();
         long absSeconds = Math.abs(seconds);
         String waitTimeFormatted = String.format(

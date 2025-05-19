@@ -10,7 +10,7 @@ const PriceSegment: React.FC<PriceSegmentProps> = ({
   travelerPricings,
 }) => {
   return (
-    <div className="w-full flex flex-col gap-2 rounded p-2 min-h-80 max-h-fit justify-between shadow-md hover:shadow-lg transition-shadow">
+    <div className="w-full flex flex-col gap-2 rounded p-2 min-h-80 max-h-fit justify-between shadow-md hover:shadow-lg transition-shadow bg-white">
       {/* Price title */}
       <h1 className="text-xl font-bold text-center">Price</h1>
 

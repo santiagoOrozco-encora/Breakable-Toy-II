@@ -21,7 +21,7 @@ const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
     return (
       <div
         key={`${type}-${index}`}
-        className="flex flex-col gap-2 p-5 rounded w-full justify-around"
+        className="flex flex-col gap-2 p-5 rounded-lg w-full justify-around border border-gray-200"
       >
         {/* Duration */}
         <div className="flex items-center justify-between">
@@ -98,7 +98,9 @@ const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
   // render price
   const renderPrice = (offer: Offer) => {
     return (
-      <div className="flex flex-col min-w-50 p-5 items-end justify-center border-l border-gray-300 text-start">
+      <div
+        className="flex flex-col min-w-50 p-5 items-end justify-center border-l border-gray-200 text-start bg-gradient-to-br from-green-50 to-green-100 rounded-r-lg"
+      >
         <div className="flex flex-col gap-2 text-end w-fit">
           <strong className="text-lg">
             $ {offer.price.grandTotal} {offer.price.currency}
@@ -119,7 +121,7 @@ const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
   return (
     <div
       key={`offer-${index}`}
-      className="flex gap-2 border-gray-500 rounded w-full p-5 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-gray-50"
+      className="flex gap-2 rounded-xl w-full p-6 bg-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:bg-green-50"
       {...rest}
     >
       {offer.returningFlight !== null ? (
