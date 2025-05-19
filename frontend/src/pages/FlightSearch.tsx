@@ -108,10 +108,13 @@ const FlightSearchPage = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen gap-5">
-      <h1 className="text-2xl font-bold text-red-500">Flight search</h1>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center gap-8 px-4 py-8">
+      <h1 className="text-4xl font-bold text-blue-800 mb-4">Flight Search</h1>
       {error && <div className="text-red-500 font-medium mb-2">{error}</div>}
-      <form className="flex flex-col gap-2 w-1/3 relative" onSubmit={onSubmit}>
+      <form
+        className="flex flex-col gap-4 w-full max-w-2xl bg-white rounded-xl p-8 shadow-lg"
+        onSubmit={onSubmit}
+      >
         <div className="flex flex-col gap-1">
           {/* DEPARTURE AIRPORT */}
           <div className="flex flex-row gap-2 items-center">
@@ -270,6 +273,7 @@ const FlightSearchPage = () => {
           label="Currency"
           id="currency"
           type="select"
+          placeholder="Select currency"
           options={CURRENCY_OPTIONS}
           {...register("currencyCode", { required: true })}
         />

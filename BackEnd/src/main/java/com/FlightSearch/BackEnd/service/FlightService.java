@@ -58,7 +58,10 @@ public class FlightService {
                     .map(this::convertToAirportListDTO)
                     .toList();
         }
-        AirportResponse backResponse = NinjaApiService.airportSearch(keyword);
+
+        System.out.println(keyword.substring(0,3).toUpperCase());
+
+        AirportResponse backResponse = NinjaApiService.airportSearch(keyword.substring(0,3).toUpperCase());
         if(backResponse.getData() != null && !backResponse.getData().isEmpty()){
             List<AirportListDTO> res = backResponse.getData().stream()
                     .map(this::convertToAirportListDTO)
@@ -322,7 +325,12 @@ public class FlightService {
     }
 
     private AirportData useNinjaApi(String iataCode){
-        List<AirportData> backUp = NinjaApiService.airportSearch(iataCode).getData();
+        String code = iataCode.toUpperCase();
+        if(iataCode.length()>3){
+            code = iataCode.substring(0,3).toUpperCase();
+        }
+        System.out.println(code);
+        List<AirportData> backUp = NinjaApiService.airportSearch(code).getData();
         if(backUp== null || backUp.isEmpty()){
             return new AirportData();
         }
