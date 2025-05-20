@@ -12,22 +12,6 @@ vi.mock("../../components/organisms/OfferDetails", () => ({
 // Re-import the component after mocking
 import OfferDetails from "../../components/organisms/OfferDetails";
 
-const mockDictionary = {
-  airports: {
-    JFK: { iataCode: "JFK", name: "John F. Kennedy International Airport" },
-    LAX: { iataCode: "LAX", name: "Los Angeles International Airport" },
-  },
-  aircraft: {
-    B737: "Boeing 737",
-  },
-  currencies: {
-    USD: "US Dollar",
-  },
-  carriers: {
-    TA: "Test Airline",
-  },
-} as Dictionary;
-
 describe("FlightDetails", () => {
   const mockOffer: Offer = {
     goingFlight: {
