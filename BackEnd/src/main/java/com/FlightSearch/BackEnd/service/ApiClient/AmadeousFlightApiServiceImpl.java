@@ -101,8 +101,8 @@ public class AmadeousFlightApiServiceImpl implements FlightApiService{
                 .queryParam("departureDate", details.getDepartureDate())
                 .queryParam("adults", details.getPassengers())
                 .queryParam("nonStop", details.getNonStop().toString())
-                .queryParam("currencyCode", details.getCurrency());
-//                .queryParam("max","20");
+                .queryParam("currencyCode", details.getCurrency())
+                .queryParam("max","50");
 
         if (details.getReturnDate() != null && !details.getReturnDate().isEmpty()) {
             uri.queryParam("returnDate",details.getReturnDate());

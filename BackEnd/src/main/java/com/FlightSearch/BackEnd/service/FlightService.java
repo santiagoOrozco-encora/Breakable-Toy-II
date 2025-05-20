@@ -360,7 +360,7 @@ public class FlightService {
                         if(segment.getStops() != null){
                             res.setStops(segment.getStops());
                         }
-                        if(segment.getOperating().getCarrierCode() != null){
+                        if(segment.getOperating() != null && segment.getOperating().getCarrierCode() != null){
                             res.setOperating(segment.getOperating().getCarrierCode());
                         }
                         return res;
