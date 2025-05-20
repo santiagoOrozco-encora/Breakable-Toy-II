@@ -5,7 +5,8 @@ services:
     build:
       context: ./BackEnd
       dockerfile: Dockerfile
-      target: ${TARGET_PLATFORM:-linux/amd64}
+      platforms:
+        - linux/amd64
     ports:
       - "9090:9090"
     networks:
@@ -22,7 +23,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: ${TARGET_PLATFORM:-linux/amd64}
+      platforms:
+        - linux/amd64
     ports:
       - "8080:8080"
     networks:
