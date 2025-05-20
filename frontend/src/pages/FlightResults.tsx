@@ -120,6 +120,7 @@ const FlightResults = () => {
             {/* Filters */}
             <div className="flex gap-4">
               <button
+                name="price"
                 onClick={() => toggleFilters("price")}
                 className={` px-4 py-2 hover:text-green-500 cursor-pointer transition-all ${
                   filterBy.includes("price") ? "text-green-500" : ""
@@ -141,6 +142,7 @@ const FlightResults = () => {
                 Price
               </button>
               <button
+                name="duration"
                 onClick={() => toggleFilters("duration")}
                 className={`px-4 py-2 hover:text-green-500 cursor-pointer transition-all ${
                   filterBy.includes("duration") ? "text-green-500" : ""

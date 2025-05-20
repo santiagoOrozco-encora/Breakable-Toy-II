@@ -55,7 +55,7 @@ export type Aircraft = {
 
 export type Offer = {
   goingFlight: Flight;
-  returningFlight: Flight;
+  returningFlight: Flight | null;
   price: Price;
   travelerPricings: TravelPricing[];
   validatedAirlineCode: string;
